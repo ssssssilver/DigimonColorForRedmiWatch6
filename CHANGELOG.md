@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.2 - 2026-06-03
+
+- Removed the idle LCD ground line after simulator review because it read as an unnecessary center divider.
+- Switched visible game UI copy and runtime feedback to Chinese by default.
+
 ## 0.3.1 - 2026-06-03
 
 - Adjusted the LCD stage ground line so the pet stands on it instead of having the line float above the sprite.

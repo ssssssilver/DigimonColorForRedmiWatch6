@@ -8,6 +8,40 @@ const PET_VERSIONS = ['Ver.5']
 export const CURRENT_SCHEMA_VERSION = 2
 const SCHEMA_VERSION = CURRENT_SCHEMA_VERSION
 const MAX_OFFLINE_MS = 7 * 24 * 60 * 60 * 1000
+const LEGACY_MESSAGES = {
+  'A new Digitama appeared.': '新的蛋出现了',
+  'TIME?': '时间异常',
+  'TIME? capped.': '时间已校正',
+  'Care mistake recorded.': '照顾失误',
+  'It returned to data.': '回归数据',
+  'Sickness was ignored.': '病情被忽视',
+  'Injury was ignored.': '受伤被忽视',
+  'EVOLUTION!': '进化',
+  'Ver.5 only.': '固定 Ver.5',
+  'Cold paused.': '冷冻中',
+  'Sleeping.': '睡眠中',
+  'Meat served.': '肉+',
+  'Too full.': '太饱了',
+  'Protein up.': '维+',
+  'Overfed.': '过量',
+  'No power.': '力量不足',
+  'Training MISS.': '训练失误',
+  'Effort heart up.': '努力+',
+  'Training OK.': '训练成功',
+  'Cannot battle.': '不能战斗',
+  'Too young.': '还太小',
+  'No quest.': '无任务',
+  'Returned to data.': '回归数据',
+  'Tap START.': '点开始',
+  'Clean already.': '已干净',
+  'Cleaned.': '清理完成',
+  'No problem.': '无需用药',
+  'Recovered.': '恢复了',
+  'Lights out.': '关灯',
+  'Lights on.': '开灯',
+  'Cold mode.': '冷冻模式',
+  'Resume.': '继续'
+}
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value))
@@ -20,6 +54,14 @@ function normalizeVersion(version) {
 function nextVersion(version) {
   const index = PET_VERSIONS.indexOf(normalizeVersion(version))
   return PET_VERSIONS[(index + 1) % PET_VERSIONS.length]
+}
+
+function localizeLegacyMessage(message) {
+  if (!message) return ''
+  if (LEGACY_MESSAGES[message]) return LEGACY_MESSAGES[message]
+  const battleMatch = message.match(/^(Q\d+-\d+) (WON|LOST) (\d+%)$/)
+  if (battleMatch) return `${battleMatch[1]} ${battleMatch[2] === 'WON' ? '胜' : '败'} ${battleMatch[3]}`
+  return message
 }
 
 function findDigimon(key) {
@@ -77,7 +119,7 @@ export function newGame(now = Date.now(), version = 'Ver.5') {
     lastHungerAt: now,
     lastStrengthAt: now,
     lastPoopAt: now,
-    message: 'A new Digitama appeared.'
+    message: '新的蛋出现了'
   }
   return hydrateState(state, now)
 }
@@ -86,6 +128,7 @@ export function hydrateState(raw, now = Date.now()) {
   const state = Object.assign(newGameSkeleton(now), raw || {})
   state.schemaVersion = SCHEMA_VERSION
   state.version = normalizeVersion(state.version)
+  state.message = localizeLegacyMessage(state.message)
   if (state.cold && !state.coldStartedAt) {
     state.coldStartedAt = state.lastAction === 'cold' ? state.lastActionAt || state.lastTickAt : state.lastTickAt
   }
@@ -94,11 +137,11 @@ export function hydrateState(raw, now = Date.now()) {
     state.lastHungerAt = now
     state.lastStrengthAt = now
     state.lastPoopAt = now
-    state.message = 'TIME?'
+    state.message = '时间异常'
   }
   if (!state.cold && now - state.lastTickAt > MAX_OFFLINE_MS) {
     const cappedNow = state.lastTickAt + MAX_OFFLINE_MS
-    state.message = 'TIME? capped.'
+    state.message = '时间已校正'
     return tickState(state, cappedNow)
   }
   if (!state.nextEvolutionAt) scheduleEvolution(state, now)
@@ -204,29 +247,29 @@ function updateCallAndMistake(state, now) {
   if (state.callStartedAt && now - state.callStartedAt >= PET_TIMING.mistakeGraceMs) {
     state.careMistakes += 1
     state.callStartedAt = now
-    state.message = 'Care mistake recorded.'
+    state.message = '照顾失误'
   }
 }
 
 function updateDeath(state, now) {
   if (state.careMistakes >= 20) {
     state.dead = true
-    state.message = 'It returned to data.'
+    state.message = '回归数据'
     return
   }
   if (state.emptyStartedAt && now - state.emptyStartedAt >= PET_TIMING.deathGraceMs && state.sick) {
     state.dead = true
-    state.message = 'It returned to data.'
+    state.message = '回归数据'
     return
   }
   if (state.sickStartedAt && now - state.sickStartedAt >= PET_TIMING.deathGraceMs) {
     state.dead = true
-    state.message = 'Sickness was ignored.'
+    state.message = '病情被忽视'
     return
   }
   if (state.injuredStartedAt && now - state.injuredStartedAt >= PET_TIMING.deathGraceMs) {
     state.dead = true
-    state.message = 'Injury was ignored.'
+    state.message = '受伤被忽视'
   }
 }
 
@@ -242,7 +285,7 @@ function updateEvolution(state, now) {
   state.sickStartedAt = 0
   state.injured = false
   state.injuredStartedAt = 0
-  state.message = 'EVOLUTION!'
+  state.message = '进化'
   scheduleEvolution(state, now)
 }
 
@@ -250,18 +293,18 @@ export function applyAction(state, action, now = Date.now()) {
   state = tickState(state, now)
   if (action === 'reset') return newGame(now, state.version)
   if (action === 'version') {
-    state.message = 'Ver.5 only.'
+    state.message = '固定 Ver.5'
     stampAction(state, action, now)
     return withPet(state)
   }
   if (state.dead) return withPet(state)
   if (state.cold && !['cold', 'data'].includes(action)) {
-    state.message = 'Cold paused.'
+    state.message = '冷冻中'
     stampAction(state, action, now)
     return withPet(state)
   }
   if (state.asleep && !['light', 'data', 'med'].includes(action)) {
-    state.message = 'Sleeping.'
+    state.message = '睡眠中'
     stampAction(state, action, now)
     return withPet(state)
   }
@@ -290,11 +333,11 @@ function feedMeat(state) {
   if (state.hunger < MAX_HEARTS) {
     state.hunger += 1
     state.weight += 1
-    state.message = 'Meat served.'
+    state.message = '肉+'
   } else {
     state.overfeeds += 1
     state.weight += 2
-    state.message = 'Too full.'
+    state.message = '太饱了'
   }
 }
 
@@ -302,53 +345,53 @@ function feedVitamin(state, now) {
   if (state.strength < MAX_HEARTS) {
     state.strength += 1
     state.weight += 2
-    state.message = 'Protein up.'
+    state.message = '维+'
   } else {
     state.overfeeds += 1
     state.weight += 2
     if (state.overfeeds % 4 === 0) markSick(state, now)
-    state.message = 'Overfed.'
+    state.message = '过量'
   }
 }
 
 function train(state, success) {
   if (state.strength <= 0) {
-    state.message = 'No power.'
+    state.message = '力量不足'
     return
   }
   if (!success) {
     state.strength = clamp(state.strength - 1, 0, MAX_HEARTS)
     state.weight = clamp(state.weight - 1, 1, 99)
-    state.message = 'Training MISS.'
+    state.message = '训练失误'
     return
   }
   state.strength -= 1
   state.effort = clamp(state.effort + 1, 0, 32)
   state.weight = clamp(state.weight - 1, 1, 99)
   if (state.effort % 8 === 0) {
-    state.message = 'Effort heart up.'
+    state.message = '努力+'
   } else {
-    state.message = 'Training OK.'
+    state.message = '训练成功'
   }
 }
 
 function battle(state, now) {
   if (state.sick || state.injured) {
-    state.message = 'Cannot battle.'
+    state.message = '不能战斗'
     return
   }
   if (state.strength <= 0) {
-    state.message = 'No power.'
+    state.message = '力量不足'
     return
   }
   const pet = findDigimon(state.petKey)
   if (!['III', 'IV', 'V', 'VI'].includes(pet.stage)) {
-    state.message = 'Too young.'
+    state.message = '还太小'
     return
   }
   const quest = getQuestTarget(state)
   if (!quest.enemy) {
-    state.message = 'No quest.'
+    state.message = '无任务'
     return
   }
   const hit = calculateHitrate({
@@ -370,11 +413,11 @@ function battle(state, now) {
     state.wins += 1
     state.lastBattleWon = true
     advanceQuest(state, quest)
-    state.message = `Q${quest.areaNumber}-${quest.roundNumber} WON ${chance}%`
+    state.message = `Q${quest.areaNumber}-${quest.roundNumber} 胜 ${chance}%`
   } else {
     state.lastBattleWon = false
     if (state.battles % 3 === 0) markInjured(state, now)
-    state.message = `Q${quest.areaNumber}-${quest.roundNumber} LOST ${chance}%`
+    state.message = `Q${quest.areaNumber}-${quest.roundNumber} 败 ${chance}%`
   }
 }
 
@@ -399,7 +442,7 @@ export function getBattlePreview(state) {
   if (!quest.enemy) {
     return {
       canBattle: false,
-      message: 'No quest.',
+      message: '无任务',
       areaText: 'Q-',
       enemyName: '',
       enemySprite: '',
@@ -417,7 +460,7 @@ export function getBattlePreview(state) {
   const canBattle = !state.dead && !state.cold && !state.asleep && !state.sick && !state.injured && state.strength > 0 && ['III', 'IV', 'V', 'VI'].includes(pet.stage)
   return {
     canBattle,
-    message: canBattle ? 'Tap START.' : battleBlockedMessage(state, pet),
+    message: canBattle ? '点开始' : battleBlockedMessage(state, pet),
     areaText: `Q${quest.areaNumber}-${quest.roundNumber}`,
     enemyName: quest.enemy.name,
     enemySprite: quest.enemy.sprite,
@@ -426,13 +469,13 @@ export function getBattlePreview(state) {
 }
 
 function battleBlockedMessage(state, pet) {
-  if (state.dead) return 'Returned to data.'
-  if (state.cold) return 'Cold paused.'
-  if (state.asleep) return 'Sleeping.'
-  if (state.sick || state.injured) return 'Cannot battle.'
-  if (state.strength <= 0) return 'No power.'
-  if (!['III', 'IV', 'V', 'VI'].includes(pet.stage)) return 'Too young.'
-  return 'Cannot battle.'
+  if (state.dead) return '回归数据'
+  if (state.cold) return '冷冻中'
+  if (state.asleep) return '睡眠中'
+  if (state.sick || state.injured) return '不能战斗'
+  if (state.strength <= 0) return '力量不足'
+  if (!['III', 'IV', 'V', 'VI'].includes(pet.stage)) return '还太小'
+  return '不能战斗'
 }
 
 function advanceQuest(state, quest) {
@@ -453,7 +496,7 @@ function advanceQuest(state, quest) {
 
 function toilet(state) {
   if (state.poop === 0) {
-    state.message = 'Clean already.'
+    state.message = '已干净'
     return
   }
   state.poop = 0
@@ -461,24 +504,24 @@ function toilet(state) {
     state.sick = false
     state.sickStartedAt = 0
   }
-  state.message = 'Cleaned.'
+  state.message = '清理完成'
 }
 
 function medicine(state) {
   if (!state.sick && !state.injured) {
-    state.message = 'No problem.'
+    state.message = '无需用药'
     return
   }
   state.sick = false
   state.sickStartedAt = 0
   state.injured = false
   state.injuredStartedAt = 0
-  state.message = 'Recovered.'
+  state.message = '恢复了'
 }
 
 function toggleSleep(state) {
   state.asleep = !state.asleep
-  state.message = state.asleep ? 'Lights out.' : 'Lights on.'
+  state.message = state.asleep ? '关灯' : '开灯'
 }
 
 function toggleCold(state, now) {
@@ -500,12 +543,12 @@ function toggleCold(state, now) {
     state.lastPoopAt = now
     state.lastTickAt = now
   }
-  state.message = state.cold ? 'Cold mode.' : 'Resume.'
+  state.message = state.cold ? '冷冻模式' : '继续'
 }
 
 function makeDataMessage(state) {
   const winRate = state.battles > 0 ? Math.round((state.wins * 100) / state.battles) : 0
-  return `CM ${state.careMistakes} EF ${state.effort} WR ${winRate}%`
+  return `失误 ${state.careMistakes} 努力 ${state.effort} 胜率 ${winRate}%`
 }
 
 export function getDisplayModel(state, now = Date.now()) {
@@ -518,24 +561,24 @@ export function getDisplayModel(state, now = Date.now()) {
   return {
     state: current,
     pet,
-    nameText: current.dead ? 'DEAD' : pet.name,
+    nameText: current.dead ? '死亡' : pet.name,
     stageText: pet.stage,
     ageText: `${ageHours}h`,
-    etaText: current.dead ? 'NEW EGG' : `${etaMin}m`,
+    etaText: current.dead ? '新蛋' : `${etaMin}分`,
     hungerText: hearts(current.hunger),
     strengthText: hearts(current.strength),
     statusText: statusText(current),
-    message: current.message || 'Watching...',
+    message: localizeLegacyMessage(current.message) || '观察中',
     sprite: current.dead ? '' : pet.sprite,
     enemySprite: current.lastEnemySprite || '',
     enemyName: current.lastEnemyName || (quest.enemy ? quest.enemy.name : ''),
     showSprite: !current.dead && !showBattle,
     showBattle,
-    battleResultText: current.lastBattleWon ? 'WIN' : 'LOSE',
+    battleResultText: current.lastBattleWon ? '胜' : '败',
     showGrave: current.dead,
     poopText: current.poop > 0 ? 'o'.repeat(current.poop) : '',
-    callText: current.callActive ? 'CALL' : '',
-    coldText: current.cold ? 'COLD' : '',
+    callText: current.callActive ? '呼叫' : '',
+    coldText: current.cold ? '冷冻' : '',
     sleepText: current.asleep ? 'ZZZ' : '',
     questText: quest.enemy ? `Q${quest.areaNumber}-${quest.roundNumber}` : 'Q-',
     versionText: normalizeVersion(current.version),
@@ -557,13 +600,13 @@ function hearts(value) {
 
 function statusText(state) {
   const flags = []
-  if (state.sick) flags.push('SICK')
-  if (state.injured) flags.push('HURT')
-  if (state.poop >= 3) flags.push('DIRTY')
-  if (state.callActive) flags.push('CALL')
-  if (state.cold) flags.push('COLD')
-  if (state.asleep) flags.push('SLEEP')
-  return flags.length ? flags.join(' ') : 'OK'
+  if (state.sick) flags.push('生病')
+  if (state.injured) flags.push('受伤')
+  if (state.poop >= 3) flags.push('脏')
+  if (state.callActive) flags.push('呼叫')
+  if (state.cold) flags.push('冷冻')
+  if (state.asleep) flags.push('睡眠')
+  return flags.length ? flags.join(' ') : '正常'
 }
 
 function statusRows(state, now) {
@@ -572,16 +615,16 @@ function statusRows(state, now) {
   const winRate = state.battles > 0 ? Math.round((state.wins * 100) / state.battles) : 0
   const ageHours = Math.max(0, Math.floor((now - state.bornAt) / (60 * 60 * 1000)))
   const etaMin = state.nextEvolutionAt ? Math.max(0, Math.ceil((state.nextEvolutionAt - now) / 60000)) : 0
-  const evoText = state.dead ? 'NEW EGG' : `${etaMin}m`
+  const evoText = state.dead ? '新蛋' : `${etaMin}分`
   return [
-    `NAME ${state.dead ? 'DEAD' : pet.name}`,
-    `${normalizeVersion(state.version)} AGE ${ageHours}h WT ${state.weight}g`,
-    `HUN ${state.hunger}/4 POW ${state.strength}/4`,
-    `EFF ${state.effort} CM ${state.careMistakes}`,
-    `BAT ${state.wins}/${state.battles} WR ${winRate}%`,
-    `Q${quest.areaNumber || '-'}-${quest.roundNumber || '-'} ${quest.enemy ? quest.enemy.name : 'NONE'}`,
-    `POOP ${state.poop} OVF ${state.overfeeds}`,
-    `EVO ${evoText}`
+    `名字 ${state.dead ? '死亡' : pet.name}`,
+    `${normalizeVersion(state.version)} 年龄 ${ageHours}时 体重 ${state.weight}g`,
+    `饥饿 ${state.hunger}/4 力量 ${state.strength}/4`,
+    `努力 ${state.effort} 失误 ${state.careMistakes}`,
+    `战斗 ${state.wins}/${state.battles} 胜率 ${winRate}%`,
+    `Q${quest.areaNumber || '-'}-${quest.roundNumber || '-'} ${quest.enemy ? quest.enemy.name : '无'}`,
+    `便便 ${state.poop} 过量 ${state.overfeeds}`,
+    `进化 ${evoText}`
   ]
 }
 

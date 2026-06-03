@@ -2,16 +2,16 @@
   <div class="vpet-page">
     <div class="{{lcdClass}}">
       <div class="icon-rail top-rail" if="{{!model.showGrave}}">
-        <input class="{{statusIconClass}}" type="button" value="ST" onclick="runAction('status')" />
-        <input class="{{foodIconClass}}" type="button" value="FD" onclick="runAction('feed')" />
-        <input class="{{trainIconClass}}" type="button" value="TR" onclick="runAction('trainStart')" />
-        <input class="{{battleIconClass}}" type="button" value="BT" onclick="runAction('battlePreview')" />
+        <input class="{{statusIconClass}}" type="button" value="状" onclick="runAction('status')" />
+        <input class="{{foodIconClass}}" type="button" value="食" onclick="runAction('feed')" />
+        <input class="{{trainIconClass}}" type="button" value="训" onclick="runAction('trainStart')" />
+        <input class="{{battleIconClass}}" type="button" value="战" onclick="runAction('battlePreview')" />
       </div>
 
       <div class="battle-scene" if="{{model.showBattle && !showStatus && !showTrain && !showBattlePreview}}">
         <image class="battle-sprite" src="{{model.sprite}}"></image>
         <div class="battle-center">
-          <text class="battle-vs">VS</text>
+          <text class="battle-vs">对</text>
           <text class="battle-result">{{model.battleResultText}}</text>
         </div>
         <image class="battle-sprite" src="{{model.enemySprite}}"></image>
@@ -25,7 +25,7 @@
       </div>
 
       <div class="train-scene" if="{{showTrain}}">
-        <text class="train-title">POWER STOP</text>
+        <text class="train-title">力量停止</text>
         <div class="train-track">
           <div class="train-zone"></div>
           <text class="train-cursor">{{trainMarker}}</text>
@@ -39,7 +39,6 @@
         <text class="grave" if="{{model.showGrave}}">X_X</text>
         <image class="pet-sprite idle-a" if="{{model.showSprite && idleFrame === 0}}" src="{{model.sprite}}"></image>
         <image class="pet-sprite idle-b" if="{{model.showSprite && idleFrame === 1}}" src="{{model.sprite}}"></image>
-        <div class="ground-line"></div>
         <text class="poop">{{model.poopText}}</text>
       </div>
 
@@ -48,66 +47,66 @@
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'main' && !model.showGrave}}">
-        <input class="{{wcIconClass}}" type="button" value="WC" onclick="runAction('toilet')" />
-        <input class="{{medIconClass}}" type="button" value="MD" onclick="runAction('med')" />
-        <input class="{{lightIconClass}}" type="button" value="LT" onclick="runAction('light')" />
-        <input class="{{coldIconClass}}" type="button" value="CL" onclick="runAction('cold')" />
-        <input class="{{dataIconClass}}" type="button" value="DT" onclick="runAction('data')" />
+        <input class="{{wcIconClass}}" type="button" value="厕" onclick="runAction('toilet')" />
+        <input class="{{medIconClass}}" type="button" value="药" onclick="runAction('med')" />
+        <input class="{{lightIconClass}}" type="button" value="灯" onclick="runAction('light')" />
+        <input class="{{coldIconClass}}" type="button" value="冷" onclick="runAction('cold')" />
+        <input class="{{dataIconClass}}" type="button" value="数" onclick="runAction('data')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'feed'}}">
-        <input class="rail-icon sub-icon" type="button" value="MEAT" onclick="runAction('meat')" />
-        <input class="rail-icon sub-icon" type="button" value="VIT" onclick="runAction('vitamin')" />
-        <input class="rail-icon sub-icon" type="button" value="BK" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon" type="button" value="肉" onclick="runAction('meat')" />
+        <input class="rail-icon sub-icon" type="button" value="维" onclick="runAction('vitamin')" />
+        <input class="rail-icon sub-icon" type="button" value="返" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'status'}}">
-        <input class="rail-icon sub-icon" type="button" value="BK" onclick="runAction('back')" />
-        <input class="rail-icon sub-icon" type="button" value="DT" onclick="runAction('data')" />
-        <input class="rail-icon sub-icon warn-icon" type="button" value="RST" onclick="runAction('resetAsk')" />
+        <input class="rail-icon sub-icon" type="button" value="返" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon" type="button" value="数" onclick="runAction('data')" />
+        <input class="rail-icon sub-icon warn-icon" type="button" value="重置" onclick="runAction('resetAsk')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'coldMenu'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="RES" onclick="runAction('cold')" />
-        <input class="rail-icon sub-icon" type="button" value="ST" onclick="runAction('status')" />
-        <input class="rail-icon sub-icon" type="button" value="BK" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon icon-active" type="button" value="恢复" onclick="runAction('cold')" />
+        <input class="rail-icon sub-icon" type="button" value="状" onclick="runAction('status')" />
+        <input class="rail-icon sub-icon" type="button" value="返" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'sleepMenu'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="WAKE" onclick="runAction('light')" />
-        <input class="rail-icon sub-icon" type="button" value="ST" onclick="runAction('status')" />
-        <input class="rail-icon sub-icon" type="button" value="BK" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon icon-active" type="button" value="唤醒" onclick="runAction('light')" />
+        <input class="rail-icon sub-icon" type="button" value="状" onclick="runAction('status')" />
+        <input class="rail-icon sub-icon" type="button" value="返" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'resetConfirm'}}">
-        <input class="rail-icon sub-icon warn-icon" type="button" value="EGG" onclick="runAction('reset')" />
-        <input class="rail-icon sub-icon" type="button" value="BK" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon warn-icon" type="button" value="新蛋" onclick="runAction('reset')" />
+        <input class="rail-icon sub-icon" type="button" value="返" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'train'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="STOP" onclick="runAction('trainStop')" />
-        <input class="rail-icon sub-icon" type="button" value="BK" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon icon-active" type="button" value="停" onclick="runAction('trainStop')" />
+        <input class="rail-icon sub-icon" type="button" value="返" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'trainResult'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="OK" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon icon-active" type="button" value="好" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'battlePreview'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="START" onclick="runAction('battleStart')" />
-        <input class="rail-icon sub-icon" type="button" value="BK" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon icon-active" type="button" value="开始" onclick="runAction('battleStart')" />
+        <input class="rail-icon sub-icon" type="button" value="返" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'battleResult'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="OK" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon icon-active" type="button" value="好" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{model.showGrave && screenMode !== 'resetConfirm'}}">
-        <input class="rail-icon sub-icon warn-icon" type="button" value="EGG" onclick="runAction('resetAsk')" />
+        <input class="rail-icon sub-icon warn-icon" type="button" value="新蛋" onclick="runAction('resetAsk')" />
       </div>
     </div>
 
-    <input class="tap-zone" type="button" value="tap" onclick="openCommands" />
+    <input class="tap-zone" type="button" value="轻触" onclick="openCommands" />
   </div>
 </template>
 
@@ -120,14 +119,14 @@ export default {
   private: {
     state: {},
     model: {
-      nameText: 'LOADING',
+      nameText: '读取中',
       stageText: '-',
       ageText: '0h',
       etaText: '-',
       hungerText: '----',
       strengthText: '----',
-      statusText: 'BOOT',
-      message: 'Loading save...',
+      statusText: '启动',
+      message: '读取存档...',
       sprite: '',
       showSprite: false,
       showGrave: false,
@@ -157,9 +156,9 @@ export default {
     trainDirection: 1,
     trainTimerId: 0,
     trainMarker: '|---------',
-    trainText: 'STOP IN BOX',
+    trainText: '停在框内',
     lcdClass: 'lcd home-lcd',
-    commandMessage: 'SELECT CARE',
+    commandMessage: '选择照顾',
     stageAlertText: '',
     petNoteText: '',
     showActionFeedback: false,
@@ -186,11 +185,11 @@ export default {
       enemyMeta: ''
     },
     menuOpenedAt: 0,
-    modeLabel: 'MAIN MENU',
+    modeLabel: '主菜单',
     actions: [
-      { id: 'menu', label: 'MENU' },
-      { id: 'status', label: 'STATUS' },
-      { id: 'cold', label: 'COLD' }
+      { id: 'menu', label: '菜单' },
+      { id: 'status', label: '状态' },
+      { id: 'cold', label: '冷冻' }
     ]
   },
   onInit() {
@@ -246,14 +245,14 @@ export default {
   },
   runAction(action) {
     if (action === 'feed') {
-      this.showStageFeedback('FOOD', 900)
+      this.showStageFeedback('食物', 900)
       this.screenMode = 'feed'
       this.menuOpenedAt = Date.now()
       this.syncMode()
       return
     }
     if (action === 'status') {
-      this.showStageFeedback('STATUS', 900)
+      this.showStageFeedback('状态', 900)
       this.screenMode = 'status'
       this.menuOpenedAt = Date.now()
       this.syncMode()
@@ -264,7 +263,7 @@ export default {
       return
     }
     if (action === 'trainStart') {
-      this.showStageFeedback('TRAIN', 900)
+      this.showStageFeedback('训练', 900)
       this.screenMode = 'train'
       this.menuOpenedAt = Date.now()
       this.startTrainTicker()
@@ -276,14 +275,14 @@ export default {
       this.stopTrainTicker()
       this.state = applyAction(this.state, success ? 'trainOk' : 'trainMiss')
       this.afterEngineAction(success)
-      this.trainText = success ? 'OK EFF +' : 'MISS'
+      this.trainText = success ? '成功 努力+' : '失误'
       this.screenMode = 'trainResult'
       this.menuOpenedAt = Date.now()
       this.syncMode()
       return
     }
     if (action === 'battlePreview') {
-      this.showStageFeedback('BATTLE', 900)
+      this.showStageFeedback('战斗', 900)
       this.battlePreview = getBattlePreview(this.state)
       this.screenMode = 'battlePreview'
       this.menuOpenedAt = Date.now()
@@ -343,14 +342,14 @@ export default {
     this.lastSavedPet = this.state.petKey
   },
   feedbackTextForAction(action) {
-    if (action === 'meat') return this.state.message === 'Too full.' ? 'FULL' : 'MEAT +'
-    if (action === 'vitamin') return this.state.message === 'Overfed.' ? 'OVER' : 'VIT +'
-    if (action === 'toilet') return this.state.message === 'Cleaned.' ? 'CLEAN' : 'CLEAN OK'
-    if (action === 'med') return this.state.message === 'Recovered.' ? 'RECOVER' : 'MED OK'
-    if (action === 'light') return this.state.asleep ? 'LIGHT OFF' : 'LIGHT ON'
-    if (action === 'cold') return this.state.cold ? 'COLD' : 'RESUME'
+    if (action === 'meat') return this.state.message === '太饱了' ? '已满' : '肉+'
+    if (action === 'vitamin') return this.state.message === '过量' ? '过量' : '维+'
+    if (action === 'toilet') return this.state.message === '清理完成' ? '清洁' : '已干净'
+    if (action === 'med') return this.state.message === '恢复了' ? '恢复' : '无需用药'
+    if (action === 'light') return this.state.asleep ? '关灯' : '开灯'
+    if (action === 'cold') return this.state.cold ? '冷冻' : '继续'
     if (action === 'data') return this.state.message
-    if (action === 'reset') return 'NEW EGG'
+    if (action === 'reset') return '新蛋'
     return this.state.message || ''
   },
   showStageFeedback(text, duration) {
@@ -379,7 +378,7 @@ export default {
   },
   openCommands() {
     if (this.model.showGrave) return
-    this.showStageFeedback('SELECT ICON', 900)
+    this.showStageFeedback('选择图标', 900)
   },
   openDefaultMenu() {
     if (this.model.showGrave) return
@@ -409,11 +408,11 @@ export default {
     if (this.state.cold) this.lcdClass = 'lcd home-lcd cold-lcd'
     if (this.state.asleep) this.lcdClass = 'lcd home-lcd sleep-lcd'
     this.stageAlertText = this.model.callText || this.model.coldText || this.model.sleepText || ''
-    if (!this.stageAlertText && this.state.sick) this.stageAlertText = 'SICK'
-    if (!this.stageAlertText && this.state.injured) this.stageAlertText = 'HURT'
+    if (!this.stageAlertText && this.state.sick) this.stageAlertText = '生病'
+    if (!this.stageAlertText && this.state.injured) this.stageAlertText = '受伤'
     this.petNoteText = this.model.coldText || this.model.sleepText || ''
     this.syncIconClasses()
-    this.commandMessage = this.model.callText ? 'CALL / SELECT CARE' : 'SELECT CARE'
+    this.commandMessage = this.model.callText ? '呼叫 / 选择照顾' : '选择照顾'
   },
   syncIconClasses() {
     const base = 'rail-icon'
@@ -454,7 +453,7 @@ export default {
       text += i === index ? '|' : '-'
     }
     this.trainMarker = text
-    this.trainText = 'STOP IN BOX'
+    this.trainText = '停在框内'
   },
   stopTrainTicker() {
     if (!this.trainTimerId) return
@@ -580,14 +579,6 @@ export default {
   background-color: #cfe3c8;
   margin-top: 0px;
   margin-bottom: -42px;
-}
-
-.ground-line {
-  width: 286px;
-  height: 3px;
-  background-color: #7aa467;
-  margin-top: -18px;
-  margin-bottom: 0px;
 }
 
 .battle-scene {

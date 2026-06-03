@@ -24,7 +24,7 @@ hatch('Ver.5')
 
 {
   const model = getDisplayModel(newGame(1250000, 'Ver.5'), 1251000)
-  assert(model.statusRows.some((row) => row.startsWith('EVO ')), 'status should include evolution timing')
+  assert(model.statusRows.some((row) => row.startsWith('进化 ')), 'status should include evolution timing')
 }
 
 {
@@ -34,10 +34,12 @@ hatch('Ver.5')
   raw.cold = true
   raw.lastAction = 'cold'
   raw.lastActionAt = start + 1000
+  raw.message = 'EVOLUTION!'
   delete raw.coldStartedAt
   const state = hydrateState(raw, start + 2000)
   assert(state.schemaVersion === 2, 'old save should migrate to schema v2')
   assert(state.coldStartedAt === start + 1000, 'old cold save should recover coldStartedAt')
+  assert(state.message === '进化', 'old save should localize legacy English messages')
 }
 
 {
@@ -49,7 +51,7 @@ hatch('Ver.5')
   const { state, start } = hatch('Ver.5')
   const result = applyAction(state, 'battle', start + 20000)
   assert(result.battles === 0, 'baby should not be able to battle')
-  assert(result.message === 'Too young.', 'baby battle should explain why it failed')
+  assert(result.message === '还太小', 'baby battle should explain why it failed')
 }
 
 {
@@ -74,7 +76,7 @@ hatch('Ver.5')
   state = applyAction(state, 'train', start + 2000)
   assert(state.cold, 'cold state should remain active')
   assert(state.strength === strength, 'cold mode should block training')
-  assert(state.message === 'Cold paused.', 'cold blocked action should explain pause')
+  assert(state.message === '冷冻中', 'cold blocked action should explain pause')
 }
 
 {
@@ -103,7 +105,7 @@ hatch('Ver.5')
   state = applyAction(state, 'meat', start + 2000)
   assert(state.asleep, 'light should toggle sleep on')
   assert(state.hunger === hunger, 'sleep should block feeding')
-  assert(state.message === 'Sleeping.', 'sleep blocked action should explain sleep')
+  assert(state.message === '睡眠中', 'sleep blocked action should explain sleep')
 }
 
 if (failures.length) {
