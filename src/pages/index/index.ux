@@ -24,11 +24,10 @@
         <text class="enemy-message">{{battlePreview.message}}</text>
       </div>
 
-      <div class="train-scene" if="{{showTrain}}">
-        <text class="train-title">力量停止</text>
+      <div class="train-scene" if="{{showTrain}}" onclick="runAction('primaryTap')">
+        <text class="train-title">{{trainTitle}}</text>
         <div class="train-track">
-          <div class="train-zone"></div>
-          <text class="train-cursor">{{trainMarker}}</text>
+          <div for="{{trainCells}}" class="{{$item.className}}"></div>
         </div>
         <text class="train-readout">{{trainText}}</text>
       </div>
@@ -84,7 +83,7 @@
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'train'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="停止" onclick="runAction('trainStop')" />
+        <input class="rail-icon sub-icon icon-active" type="button" value="停止判定" onclick="runAction('trainStop')" />
         <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
       </div>
 
@@ -106,13 +105,13 @@
       </div>
     </div>
 
-    <input class="tap-zone" type="button" value="轻触" onclick="openCommands" />
+    <input class="tap-zone" type="button" value="轻触" onclick="runAction('primaryTap')" />
   </div>
 </template>
 
 <script>
 import vibrator from '@system.vibrator'
-import { applyAction, getBattlePreview, getDisplayModel } from '../../common/utils/gameEngine.js'
+import { applyAction, getBattlePreview, getDisplayModel, getTrainingPreview } from '../../common/utils/gameEngine.js'
 import { loadGame, saveGame } from '../../common/utils/gameStore.js'
 
 export default {
@@ -158,7 +157,9 @@ export default {
     trainDirection: 1,
     trainTimerId: 0,
     trainMarker: '|---------',
-    trainText: '停在框内',
+    trainCells: [],
+    trainTitle: '蓄力训练',
+    trainText: '停止判定',
     lcdClass: 'lcd home-lcd',
     commandMessage: '选择照顾',
     stageAlertText: '',
@@ -246,6 +247,22 @@ export default {
     this.saveIfNeeded()
   },
   runAction(action) {
+    if (action === 'primaryTap') {
+      if (this.screenMode === 'train') {
+        this.runAction('trainStop')
+        return
+      }
+      if (this.screenMode === 'trainResult' || this.screenMode === 'battleResult') {
+        this.runAction('back')
+        return
+      }
+      if (this.screenMode === 'battlePreview') {
+        this.runAction('battleStart')
+        return
+      }
+      this.openCommands()
+      return
+    }
     if (action === 'feed') {
       this.showStageFeedback('食物', 900)
       this.screenMode = 'feed'
@@ -265,6 +282,14 @@ export default {
       return
     }
     if (action === 'trainStart') {
+      const preview = getTrainingPreview(this.state)
+      if (!preview.canTrain) {
+        this.state.message = preview.message
+        this.showStageFeedback(preview.message)
+        this.screenMode = 'main'
+        this.syncMode()
+        return
+      }
       this.showStageFeedback('训练', 900)
       this.screenMode = 'train'
       this.menuOpenedAt = Date.now()
@@ -277,7 +302,9 @@ export default {
       this.stopTrainTicker()
       this.state = applyAction(this.state, success ? 'trainOk' : 'trainMiss')
       this.afterEngineAction(success)
-      this.trainText = success ? '成功 努力+' : '失误'
+      this.trainTitle = success ? '训练成功' : '训练失败'
+      this.trainText = this.state.message
+      this.updateTrainCells(success ? 'success' : 'miss')
       this.screenMode = 'trainResult'
       this.menuOpenedAt = Date.now()
       this.syncMode()
@@ -434,6 +461,8 @@ export default {
     this.stopTrainTicker()
     this.trainValue = 0
     this.trainDirection = 1
+    this.trainTitle = '蓄力训练'
+    this.trainText = '停止判定 0%'
     this.updateTrainMarker()
     this.trainTimerId = setInterval(() => {
       this.trainValue += 10 * this.trainDirection
@@ -449,13 +478,19 @@ export default {
     }, 180)
   },
   updateTrainMarker() {
+    this.trainMarker = `${Math.round(this.trainValue)}%`
+    this.updateTrainCells('')
+    this.trainText = `停止判定 ${Math.round(this.trainValue)}%`
+  },
+  updateTrainCells(result) {
     const index = Math.max(0, Math.min(9, Math.round(this.trainValue / 11)))
-    let text = ''
+    const cells = []
     for (let i = 0; i < 10; i++) {
-      text += i === index ? '|' : '-'
+      let className = i >= 4 && i <= 6 ? 'train-cell train-zone-cell' : 'train-cell'
+      if (i === index) className += result === 'success' ? ' train-cell-success' : result === 'miss' ? ' train-cell-miss' : ' train-cell-active'
+      cells.push({ className })
     }
-    this.trainMarker = text
-    this.trainText = '停在框内'
+    this.trainCells = cells
   },
   stopTrainTicker() {
     if (!this.trainTimerId) return
@@ -556,7 +591,7 @@ export default {
 
 .scene {
   width: 100%;
-  flex-grow: 1;
+  height: 316px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -585,7 +620,7 @@ export default {
 
 .battle-scene {
   width: 100%;
-  flex-grow: 1;
+  height: 316px;
   flex-direction: row;
   align-items: center;
   justify-content: center;
@@ -593,7 +628,7 @@ export default {
 
 .battle-preview-scene {
   width: 100%;
-  flex-grow: 1;
+  height: 316px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -653,7 +688,7 @@ export default {
 
 .train-scene {
   width: 100%;
-  flex-grow: 1;
+  height: 316px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -667,28 +702,43 @@ export default {
 }
 
 .train-track {
-  width: 230px;
-  height: 56px;
+  width: 246px;
+  height: 58px;
   margin-top: 14px;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   border-width: 3px;
   border-color: #203c38;
   background-color: #d8eac8;
+  padding-left: 4px;
+  padding-right: 4px;
 }
 
-.train-zone {
-  width: 54px;
-  height: 8px;
-  background-color: #d79a2b;
-  margin-bottom: 4px;
+.train-cell {
+  width: 20px;
+  height: 34px;
+  margin-left: 1px;
+  margin-right: 1px;
+  background-color: #a8b9a4;
+  border-width: 1px;
+  border-color: #203c38;
 }
 
-.train-cursor {
-  color: #101716;
-  font-size: 22px;
-  text-align: center;
+.train-zone-cell {
+  background-color: #d7a93b;
+}
+
+.train-cell-active {
+  background-color: #101716;
+}
+
+.train-cell-success {
+  background-color: #1b5b3b;
+}
+
+.train-cell-miss {
+  background-color: #9a2b16;
 }
 
 .train-readout {
@@ -700,7 +750,7 @@ export default {
 
 .status-scene {
   width: 100%;
-  flex-grow: 1;
+  height: 316px;
   flex-direction: column;
   justify-content: center;
   padding-left: 12px;

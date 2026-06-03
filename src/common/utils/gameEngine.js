@@ -514,6 +514,21 @@ export function getBattlePreview(state) {
   }
 }
 
+export function getTrainingPreview(state) {
+  return {
+    canTrain: !state.dead && !state.cold && !state.asleep && !state.sick && !state.injured,
+    message: trainingBlockedMessage(state)
+  }
+}
+
+function trainingBlockedMessage(state) {
+  if (state.dead) return '回归数据'
+  if (state.cold) return '冷冻中'
+  if (state.asleep) return '睡眠中'
+  if (state.sick || state.injured) return '先治疗'
+  return '停止判定'
+}
+
 function battleBlockedMessage(state, pet) {
   if (state.dead) return '回归数据'
   if (state.cold) return '冷冻中'

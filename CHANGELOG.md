@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.6 - 2026-06-03
+
+- Reworked the training screen into a visible timing-bar interaction with clear charging cells, success/failure colors, and direct result text.
+- Added center-screen and bottom-rail training stop handling so training can be completed by tapping the training stage or the `停止判定` command.
+- Added training availability preview rules for blocked states such as Cold Mode, Sleep, sickness, and injury.
+- Fixed the LCD stage panels to use stable heights instead of relying on Vela flex-grow behavior.
+- Documented first-version operation notes, including the training flow and local build/debug commands.
+
 ## 0.3.5 - 2026-06-03
 
 - Added first-pass Energy, Protein feed, Protein Overdose, training count, stage training, stage battle, injury count, and medicine dose fields with old-save migration defaults.

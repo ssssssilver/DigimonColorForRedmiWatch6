@@ -1,4 +1,4 @@
-import { applyAction, getDisplayModel, hydrateState, newGame } from '../src/common/utils/gameEngine.js'
+import { applyAction, getDisplayModel, getTrainingPreview, hydrateState, newGame } from '../src/common/utils/gameEngine.js'
 
 const failures = []
 
@@ -124,6 +124,8 @@ hatch('Ver.5')
   const start = 3000000
   let state = newGame(start, 'Ver.5')
   state = applyAction(state, 'cold', start + 1000)
+  const preview = getTrainingPreview(state)
+  assert(!preview.canTrain && preview.message === '冷冻中', 'cold training preview should block with a clear message')
   const strength = state.strength
   state = applyAction(state, 'train', start + 2000)
   assert(state.cold, 'cold state should remain active')
