@@ -72,6 +72,11 @@ function findDigimon(key) {
   return PET_FORMS.digitama
 }
 
+function idleSpritePath(pet, frame) {
+  if (!pet || pet.version !== 'Ver.5') return pet ? pet.sprite : ''
+  return `/common/assets/dmc/ver5/${pet.key}/idle-${frame}.png`
+}
+
 function scheduleEvolution(state, now) {
   const form = findDigimon(state.petKey)
   const delay = nextEvolutionDelayFor(form.stage)
@@ -577,6 +582,8 @@ export function getDisplayModel(state, now = Date.now()) {
     battleResultText: current.lastBattleWon ? '胜' : '败',
     showGrave: current.dead,
     poopText: current.poop > 0 ? 'o'.repeat(current.poop) : '',
+    idleSprite1: current.dead ? '' : idleSpritePath(pet, 1),
+    idleSprite2: current.dead ? '' : idleSpritePath(pet, 2),
     callText: current.callActive ? '呼叫' : '',
     coldText: current.cold ? '冷冻' : '',
     sleepText: current.asleep ? 'ZZZ' : '',

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.4 - 2026-06-03
+
+- Added Humulos Ver.5 idle animation asset extraction for frame1/frame2 sprites and committed the generated dual-frame runtime assets.
+- Switched the home idle display from same-sprite positional toggling to hard cuts between `idle-1.png` and `idle-2.png`.
+- Extended data and smoke tests to require Ver.5 dual-frame idle assets.
+
 ## 0.3.3 - 2026-06-03
 
 - Replaced one-character Chinese UI labels with clearer action labels across the watch command rails and submenus.

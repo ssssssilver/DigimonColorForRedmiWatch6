@@ -28,6 +28,14 @@ hatch('Ver.5')
 }
 
 {
+  const { state, start } = hatch('Ver.5')
+  const model = getDisplayModel(state, start + 12000)
+  assert(model.idleSprite1.endsWith('/idle-1.png'), 'Ver.5 display should expose Humulos idle frame 1')
+  assert(model.idleSprite2.endsWith('/idle-2.png'), 'Ver.5 display should expose Humulos idle frame 2')
+  assert(model.idleSprite1 !== model.idleSprite2, 'Ver.5 idle frames should be distinct assets')
+}
+
+{
   const start = 1300000
   const raw = newGame(start, 'Ver.5')
   raw.schemaVersion = 1

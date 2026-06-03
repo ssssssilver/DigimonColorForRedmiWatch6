@@ -1,4 +1,5 @@
 import { readFile, stat } from 'node:fs/promises'
+import { createHash } from 'node:crypto'
 
 function parseExportedJson(source, exportName) {
   const start = source.indexOf(`export const ${exportName} = `)
@@ -74,8 +75,37 @@ async function validateSprite(label, sprite) {
   }
 }
 
+async function validateIdleFrame(key, frame) {
+  const sprite = `/common/assets/dmc/ver5/${key}/idle-${frame}.png`
+  try {
+    const info = await stat(new URL(`../src${sprite}`, import.meta.url))
+    if (info.size <= 0) failures.push(`${key} idle-${frame} is empty: ${sprite}`)
+  } catch (error) {
+    failures.push(`${key} idle-${frame} missing: ${sprite}`)
+  }
+}
+
+async function validateDistinctIdleFrames(key) {
+  try {
+    const [frame1, frame2] = await Promise.all([
+      readFile(new URL(`../src/common/assets/dmc/ver5/${key}/idle-1.png`, import.meta.url)),
+      readFile(new URL(`../src/common/assets/dmc/ver5/${key}/idle-2.png`, import.meta.url))
+    ])
+    const hash1 = createHash('sha256').update(frame1).digest('hex')
+    const hash2 = createHash('sha256').update(frame2).digest('hex')
+    if (hash1 === hash2) failures.push(`${key} idle frames must be distinct assets`)
+  } catch (error) {
+    failures.push(`${key} idle frames could not be compared`)
+  }
+}
+
 for (const item of DIGIMON) {
   await validateSprite(item.key, item.sprite)
+  if (item.version === 'Ver.5') {
+    await validateIdleFrame(item.key, 1)
+    await validateIdleFrame(item.key, 2)
+    await validateDistinctIdleFrames(item.key)
+  }
 }
 
 for (const version of QUESTS) {
