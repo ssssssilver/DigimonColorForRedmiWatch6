@@ -571,6 +571,8 @@ function statusRows(state, now) {
   const quest = getQuestTarget(state)
   const winRate = state.battles > 0 ? Math.round((state.wins * 100) / state.battles) : 0
   const ageHours = Math.max(0, Math.floor((now - state.bornAt) / (60 * 60 * 1000)))
+  const etaMin = state.nextEvolutionAt ? Math.max(0, Math.ceil((state.nextEvolutionAt - now) / 60000)) : 0
+  const evoText = state.dead ? 'NEW EGG' : `${etaMin}m`
   return [
     `NAME ${state.dead ? 'DEAD' : pet.name}`,
     `${normalizeVersion(state.version)} AGE ${ageHours}h WT ${state.weight}g`,
@@ -578,7 +580,8 @@ function statusRows(state, now) {
     `EFF ${state.effort} CM ${state.careMistakes}`,
     `BAT ${state.wins}/${state.battles} WR ${winRate}%`,
     `Q${quest.areaNumber || '-'}-${quest.roundNumber || '-'} ${quest.enemy ? quest.enemy.name : 'NONE'}`,
-    `POOP ${state.poop} OVF ${state.overfeeds}`
+    `POOP ${state.poop} OVF ${state.overfeeds}`,
+    `EVO ${evoText}`
   ]
 }
 

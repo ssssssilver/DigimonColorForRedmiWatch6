@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0 - 2026-06-03
+
+- Reworked the home screen toward the video-evidence DMC Color UI: light square LCD, internal top/bottom icon rails, and a larger central pet stage.
+- Removed the default top HUD, HUN/POW readout, EVO strip, and bottom command button layer from the idle home screen.
+- Made icon rails drive actions directly, with active/hot icon states for selected functions and care calls.
+- Added the EVO countdown to the Status screen now that default home no longer shows it.
+
 ## 0.2.5 - 2026-06-03
 
 - Added short LCD-stage feedback for care actions such as food, toilet, medicine, light, Cold Mode, and blocked battle starts.

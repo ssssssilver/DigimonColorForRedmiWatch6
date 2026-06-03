@@ -23,6 +23,11 @@ hatch('Ver.5')
 }
 
 {
+  const model = getDisplayModel(newGame(1250000, 'Ver.5'), 1251000)
+  assert(model.statusRows.some((row) => row.startsWith('EVO ')), 'status should include evolution timing')
+}
+
+{
   const start = 1300000
   const raw = newGame(start, 'Ver.5')
   raw.schemaVersion = 1
