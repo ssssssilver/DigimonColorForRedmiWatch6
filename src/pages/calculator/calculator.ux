@@ -1,0 +1,212 @@
+<template>
+  <div class="safe-page">
+    <div class="header">
+      <input class="back" type="button" value="<" onclick="back" />
+      <text class="title">命中率</text>
+      <text class="sub-title">{{result.hitrateText}}</text>
+    </div>
+
+    <scroll class="scroll" scroll-y="true">
+      <div class="panel">
+        <text class="sub-title">我方 Power</text>
+        <div class="step-row">
+          <input class="step-btn" type="button" value="-5" onclick="changePower('player', -5)" />
+          <text class="step-value">{{playerPower}}</text>
+          <input class="step-btn" type="button" value="+5" onclick="changePower('player', 5)" />
+        </div>
+        <scroll class="filter-row" scroll-x="true">
+          <input for="{{playerAttrButtons}}" tid="value" class="{{$item.className}}" type="button" value="{{$item.label}}" onclick="setPlayerAttribute($item.value)" />
+        </scroll>
+      </div>
+
+      <div class="panel spaced">
+        <text class="sub-title">Stage / Egg</text>
+        <scroll class="filter-row" scroll-x="true">
+          <input for="{{stageButtons}}" tid="value" class="{{$item.className}}" type="button" value="{{$item.label}}" onclick="setStage($item.value)" />
+        </scroll>
+        <input class="{{eggClass}}" type="button" value="{{eggLabel}}" onclick="toggleEgg" />
+      </div>
+
+      <div class="panel spaced">
+        <text class="sub-title">敌方 Power</text>
+        <div class="step-row">
+          <input class="step-btn" type="button" value="-5" onclick="changePower('opponent', -5)" />
+          <text class="step-value">{{opponentPower}}</text>
+          <input class="step-btn" type="button" value="+5" onclick="changePower('opponent', 5)" />
+        </div>
+        <scroll class="filter-row" scroll-x="true">
+          <input for="{{opponentAttrButtons}}" tid="value" class="{{$item.className}}" type="button" value="{{$item.label}}" onclick="setOpponentAttribute($item.value)" />
+        </scroll>
+      </div>
+
+      <div class="led-panel spaced">
+        <text class="sub-title">RESULT</text>
+        <text class="result-line">Total Power: {{result.totalPower}}</text>
+        <text class="result-line">Advantage: {{result.advantage}}</text>
+        <text class="big-rate">{{result.hitrateText}}</text>
+      </div>
+    </scroll>
+  </div>
+</template>
+
+<script>
+import router from '@system.router'
+import { calculateHitrate, ATTRIBUTES, STAGES } from '../../common/utils/calculator.js'
+
+function makeButtons(values, selected) {
+  return values.map((value) => ({
+    value,
+    label: value,
+    className: value === selected ? 'chip-active' : 'chip'
+  }))
+}
+
+export default {
+  protected: {
+    playerPowerParam: '',
+    playerAttributeParam: '',
+    opponentPowerParam: '',
+    opponentAttributeParam: ''
+  },
+  private: {
+    playerPower: 30,
+    opponentPower: 30,
+    playerAttribute: 'Vaccine',
+    opponentAttribute: 'Virus',
+    stage: 'III',
+    traitedEgg: false,
+    playerAttrButtons: [],
+    opponentAttrButtons: [],
+    stageButtons: [],
+    eggClass: 'btn',
+    eggLabel: 'Traited Egg: OFF',
+    result: {
+      bonus: 0,
+      totalPower: 0,
+      advantage: 0,
+      hitrate: 0,
+      hitrateText: '0.00%'
+    }
+  },
+  onShow() {
+    if (this.playerPowerParam) {
+      this.playerPower = parseInt(this.playerPowerParam)
+    }
+    if (this.playerAttributeParam) {
+      this.playerAttribute = this.playerAttributeParam
+    }
+    if (this.opponentPowerParam) {
+      this.opponentPower = parseInt(this.opponentPowerParam)
+    }
+    if (this.opponentAttributeParam) {
+      this.opponentAttribute = this.opponentAttributeParam
+    }
+    this.refresh()
+  },
+  refresh() {
+    this.result = calculateHitrate({
+      playerPower: this.playerPower,
+      opponentPower: this.opponentPower,
+      playerAttribute: this.playerAttribute,
+      opponentAttribute: this.opponentAttribute,
+      stage: this.stage,
+      traitedEgg: this.traitedEgg
+    })
+    this.playerAttrButtons = makeButtons(ATTRIBUTES, this.playerAttribute)
+    this.opponentAttrButtons = makeButtons(ATTRIBUTES, this.opponentAttribute)
+    this.stageButtons = makeButtons(STAGES, this.stage)
+    this.eggClass = this.traitedEgg ? 'btn-active wide-btn' : 'btn wide-btn'
+    this.eggLabel = this.traitedEgg ? 'Traited Egg: ON' : 'Traited Egg: OFF'
+  },
+  changePower(target, delta) {
+    if (target === 'player') {
+      this.playerPower = Math.max(0, this.playerPower + delta)
+    } else {
+      this.opponentPower = Math.max(0, this.opponentPower + delta)
+    }
+    this.refresh()
+  },
+  setPlayerAttribute(value) {
+    this.playerAttribute = value
+    this.refresh()
+  },
+  setOpponentAttribute(value) {
+    this.opponentAttribute = value
+    this.refresh()
+  },
+  setStage(value) {
+    this.stage = value
+    this.refresh()
+  },
+  toggleEgg() {
+    this.traitedEgg = !this.traitedEgg
+    this.refresh()
+  },
+  back() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+@import '../../common/style.css';
+
+.filter-row {
+  width: 100%;
+  height: 42px;
+  margin-top: 8px;
+  flex-direction: row;
+}
+
+.chip, .chip-active {
+  width: 88px;
+}
+
+.spaced {
+  margin-top: 10px;
+}
+
+.step-row {
+  width: 100%;
+  height: 58px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.step-btn {
+  width: 76px;
+  height: 46px;
+  border-width: 2px;
+  border-color: #38f279;
+  border-radius: 4px;
+  background-color: #08160e;
+  color: #7cff9c;
+  font-size: 18px;
+}
+
+.step-value {
+  flex-grow: 1;
+  color: #ffd95f;
+  font-size: 34px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.wide-btn {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.result-line {
+  color: #d8ffe2;
+  font-size: 20px;
+}
+
+.big-rate {
+  color: #ffd95f;
+  font-size: 42px;
+  font-weight: bold;
+  text-align: center;
+}
+</style>

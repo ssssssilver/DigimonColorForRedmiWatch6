@@ -1,0 +1,10 @@
+<script>
+export default {
+  onCreate() {
+    console.log('DMC VPET created')
+  },
+  onDestroy() {
+    console.log('DMC VPET destroyed')
+  }
+}
+</script>

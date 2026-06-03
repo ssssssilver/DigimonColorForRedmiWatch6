@@ -1,0 +1,883 @@
+<template>
+  <div class="vpet-page">
+    <div class="device-shell">
+      <div class="top-strip">
+        <text class="top-left">{{model.versionText}}</text>
+        <text class="top-mid">{{model.nameText}}</text>
+        <text class="top-right">{{model.questText}} {{model.ageText}}</text>
+      </div>
+      <div class="bezel-strip">
+        <text class="bezel-dot">A</text>
+        <text class="bezel-title">DIGITAL MONSTER</text>
+        <text class="bezel-dot">B</text>
+      </div>
+    </div>
+
+    <div class="lcd" onclick="openCommands">
+      <div class="lcd-status">
+        <text class="warn left-warn">{{model.callText}}</text>
+        <text class="lcd-stage">{{model.stageText}}  EVO {{model.etaText}}</text>
+        <text class="warn right-warn">{{model.coldText}}{{model.sleepText}}</text>
+      </div>
+
+      <div class="battle-scene" if="{{model.showBattle && !showStatus && !showTrain && !showBattlePreview}}">
+        <image class="battle-sprite" src="{{model.sprite}}"></image>
+        <div class="battle-center">
+          <text class="battle-vs">VS</text>
+          <text class="battle-result">{{model.battleResultText}}</text>
+        </div>
+        <image class="battle-sprite" src="{{model.enemySprite}}"></image>
+      </div>
+
+      <div class="battle-preview-scene" if="{{showBattlePreview}}">
+        <image class="battle-sprite enemy-large" src="{{battlePreview.enemySprite}}"></image>
+        <text class="enemy-name">{{battlePreview.enemyName}}</text>
+        <text class="enemy-meta">{{battlePreview.enemyMeta}}</text>
+        <text class="enemy-message">{{battlePreview.message}}</text>
+      </div>
+
+      <div class="train-scene" if="{{showTrain}}">
+        <text class="train-title">POWER STOP</text>
+        <div class="train-track">
+          <div class="train-zone"></div>
+          <text class="train-cursor">{{trainMarker}}</text>
+        </div>
+        <text class="train-readout">{{trainText}}</text>
+      </div>
+
+      <div class="scene" if="{{!showStatus && !model.showBattle && !showTrain && !showBattlePreview}}">
+        <div class="skyline">
+          <div class="sky-block low"></div>
+          <div class="sky-block high"></div>
+          <div class="sky-block mid"></div>
+          <div class="sky-block low"></div>
+        </div>
+        <div class="ground-line"></div>
+        <text class="grave" if="{{model.showGrave}}">X_X</text>
+        <image class="pet-sprite idle-a" if="{{model.showSprite && idleFrame === 0}}" src="{{model.sprite}}"></image>
+        <image class="pet-sprite idle-b" if="{{model.showSprite && idleFrame === 1}}" src="{{model.sprite}}"></image>
+        <text class="poop">{{model.poopText}}</text>
+      </div>
+
+      <div class="status-scene" if="{{showStatus}}">
+        <text for="{{model.statusRows}}" class="status-row">{{$item}}</text>
+      </div>
+
+      <div class="meter-row">
+        <div class="meter-box">
+          <text class="meter-label">HUN</text>
+          <text class="heart-line">{{model.hungerText}}</text>
+        </div>
+        <div class="meter-box">
+          <text class="meter-label">POW</text>
+          <text class="heart-line">{{model.strengthText}}</text>
+        </div>
+      </div>
+    </div>
+
+    <div class="tap-strip" if="{{!showCommands && !model.showGrave}}">
+      <text class="tap-text">TAP</text>
+    </div>
+
+    <div class="message-box" if="{{showCommands}}">
+      <text class="message">{{model.statusText}} / {{model.message}}</text>
+    </div>
+
+    <div class="mode-strip" if="{{showCommands}}">
+      <text class="mode-label">{{modeLabel}}</text>
+    </div>
+
+    <div class="action-grid" if="{{showCommands}}">
+      <input for="{{actions}}" tid="id" class="action-btn" type="button" value="{{$item.label}}" onclick="runAction($item.id)" />
+    </div>
+
+    <div class="dead-actions" if="{{showDeadAction}}">
+      <input class="new-egg" type="button" value="NEW EGG" onclick="runAction('resetAsk')" />
+    </div>
+  </div>
+</template>
+
+<script>
+import vibrator from '@system.vibrator'
+import { applyAction, getBattlePreview, getDisplayModel } from '../../common/utils/gameEngine.js'
+import { loadGame, saveGame } from '../../common/utils/gameStore.js'
+
+export default {
+  private: {
+    state: {},
+    model: {
+      nameText: 'LOADING',
+      stageText: '-',
+      ageText: '0h',
+      etaText: '-',
+      hungerText: '----',
+      strengthText: '----',
+      statusText: 'BOOT',
+      message: 'Loading save...',
+      sprite: '',
+      showSprite: false,
+      showGrave: false,
+      poopText: '',
+      callText: '',
+      coldText: '',
+      sleepText: '',
+      questText: 'Q-',
+      versionText: 'Ver.5',
+      enemySprite: '',
+      enemyName: '',
+      showBattle: false,
+      battleResultText: ''
+    },
+    timerId: 0,
+    lastSavedAt: 0,
+    lastSavedPet: '',
+    screenMode: 'main',
+    showStatus: false,
+    showTrain: false,
+    showBattlePreview: false,
+    showDeadAction: false,
+    showCommands: false,
+    idleFrame: 0,
+    trainValue: 0,
+    trainDirection: 1,
+    trainTimerId: 0,
+    trainMarker: '|---------',
+    trainText: 'STOP IN BOX',
+    battlePreview: {
+      canBattle: false,
+      message: '',
+      areaText: 'Q-',
+      enemyName: '',
+      enemySprite: '',
+      enemyMeta: ''
+    },
+    menuOpenedAt: 0,
+    modeLabel: 'MAIN MENU',
+    actions: [
+      { id: 'menu', label: 'MENU' },
+      { id: 'status', label: 'STATUS' },
+      { id: 'cold', label: 'COLD' }
+    ]
+  },
+  onInit() {
+    loadGame((state) => {
+      this.state = state
+      this.refresh()
+      this.startTicker()
+    })
+  },
+  onShow() {
+    this.refresh()
+    this.startTicker()
+  },
+  onHide() {
+    this.stopTicker()
+  },
+  onDestroy() {
+    this.stopTicker()
+  },
+  startTicker() {
+    if (this.timerId) return
+    this.timerId = setInterval(() => {
+      this.idleFrame = this.idleFrame === 0 ? 1 : 0
+      this.refresh()
+    }, 1000)
+  },
+  stopTicker() {
+    if (!this.timerId) return
+    clearInterval(this.timerId)
+    this.timerId = 0
+    this.stopTrainTicker()
+  },
+  refresh() {
+    if (!this.state.petKey) return
+    this.model = getDisplayModel(this.state)
+    this.state = this.model.state
+    if (this.showCommands && this.menuOpenedAt && Date.now() - this.menuOpenedAt > 7000) {
+      this.screenMode = 'main'
+    }
+    this.syncMode()
+    this.saveIfNeeded()
+  },
+  runAction(action) {
+    if (action === 'feed') {
+      this.screenMode = 'feed'
+      this.syncMode()
+      return
+    }
+    if (action === 'status') {
+      this.screenMode = 'status'
+      this.menuOpenedAt = Date.now()
+      this.syncMode()
+      return
+    }
+    if (action === 'menu') {
+      this.screenMode = 'menu'
+      this.menuOpenedAt = Date.now()
+      this.syncMode()
+      return
+    }
+    if (action === 'trainStart') {
+      this.screenMode = 'train'
+      this.menuOpenedAt = Date.now()
+      this.startTrainTicker()
+      this.syncMode()
+      return
+    }
+    if (action === 'trainStop') {
+      const success = this.trainValue >= 42 && this.trainValue <= 62
+      this.stopTrainTicker()
+      this.state = applyAction(this.state, success ? 'trainOk' : 'trainMiss')
+      this.afterEngineAction(success)
+      this.trainText = success ? 'OK EFF +' : 'MISS'
+      this.screenMode = 'trainResult'
+      this.menuOpenedAt = Date.now()
+      this.syncMode()
+      return
+    }
+    if (action === 'battlePreview') {
+      this.battlePreview = getBattlePreview(this.state)
+      this.screenMode = 'battlePreview'
+      this.menuOpenedAt = Date.now()
+      this.syncMode()
+      return
+    }
+    if (action === 'battleStart') {
+      if (!this.battlePreview.canBattle) {
+        this.state.message = this.battlePreview.message
+        this.screenMode = 'main'
+        this.syncMode()
+        return
+      }
+      this.state = applyAction(this.state, 'battle')
+      this.afterEngineAction(true)
+      this.screenMode = 'battleResult'
+      this.menuOpenedAt = Date.now()
+      this.syncMode()
+      return
+    }
+    if (action === 'resetAsk') {
+      this.screenMode = 'resetConfirm'
+      this.menuOpenedAt = Date.now()
+      this.syncMode()
+      return
+    }
+    if (action === 'back') {
+      this.screenMode = 'main'
+      this.stopTrainTicker()
+      this.syncMode()
+      return
+    }
+    this.state = applyAction(this.state, action)
+    this.afterEngineAction(action === 'battle' || action === 'cold' || action === 'med')
+    this.screenMode = 'main'
+    this.syncMode()
+  },
+  afterEngineAction(shouldBuzz) {
+    this.model = getDisplayModel(this.state)
+    if (shouldBuzz) this.buzz()
+    saveGame(this.state)
+    this.lastSavedAt = Date.now()
+    this.lastSavedPet = this.state.petKey
+  },
+  buzz() {
+    if (!vibrator || !vibrator.vibrate) return
+    vibrator.vibrate({
+      mode: 'short',
+      success() {},
+      fail() {}
+    })
+  },
+  openCommands() {
+    if (this.screenMode === 'main' && !this.model.showGrave) {
+      this.screenMode = 'menu'
+      this.menuOpenedAt = Date.now()
+      this.syncMode()
+    }
+  },
+  syncMode() {
+    this.showStatus = this.screenMode === 'status'
+    this.showTrain = this.screenMode === 'train' || this.screenMode === 'trainResult'
+    this.showBattlePreview = this.screenMode === 'battlePreview'
+    this.showDeadAction = this.model.showGrave && this.screenMode !== 'resetConfirm'
+    if (this.screenMode === 'feed') {
+      this.showCommands = true
+      this.modeLabel = 'FOOD MENU'
+      this.actions = [
+        { id: 'meat', label: 'MEAT' },
+        { id: 'vitamin', label: 'VIT' },
+        { id: 'back', label: 'BACK' }
+      ]
+      return
+    }
+    if (this.screenMode === 'status') {
+      this.showCommands = true
+      this.modeLabel = 'STATUS'
+      this.actions = [
+        { id: 'back', label: 'BACK' },
+        { id: 'data', label: 'DATA' },
+        { id: 'resetAsk', label: 'RESET' }
+      ]
+      return
+    }
+    if (this.screenMode === 'resetConfirm') {
+      this.showCommands = true
+      this.modeLabel = 'RESET?'
+      this.actions = [
+        { id: 'reset', label: 'NEW EGG' },
+        { id: 'back', label: 'BACK' }
+      ]
+      return
+    }
+    if (this.screenMode === 'train') {
+      this.showCommands = true
+      this.modeLabel = 'TRAIN'
+      this.actions = [
+        { id: 'trainStop', label: 'STOP' },
+        { id: 'back', label: 'BACK' }
+      ]
+      return
+    }
+    if (this.screenMode === 'trainResult') {
+      this.showCommands = true
+      this.modeLabel = 'RESULT'
+      this.actions = [
+        { id: 'back', label: 'OK' }
+      ]
+      return
+    }
+    if (this.screenMode === 'battlePreview') {
+      this.showCommands = true
+      this.modeLabel = this.battlePreview.areaText
+      this.actions = [
+        { id: 'battleStart', label: 'START' },
+        { id: 'back', label: 'BACK' }
+      ]
+      return
+    }
+    if (this.screenMode === 'battleResult') {
+      this.showCommands = true
+      this.modeLabel = 'BATTLE'
+      this.actions = [
+        { id: 'back', label: 'OK' }
+      ]
+      return
+    }
+    if (this.screenMode === 'menu') {
+      this.showCommands = true
+      this.modeLabel = 'COMMAND'
+      this.actions = [
+        { id: 'feed', label: 'FOOD' },
+        { id: 'trainStart', label: 'TRAIN' },
+        { id: 'battlePreview', label: 'BATTLE' },
+        { id: 'toilet', label: 'WC' },
+        { id: 'med', label: 'MED' },
+        { id: 'light', label: 'LIGHT' },
+        { id: 'cold', label: 'COLD' },
+        { id: 'data', label: 'DATA' },
+        { id: 'back', label: 'BACK' }
+      ]
+      return
+    }
+    this.showCommands = false
+    this.modeLabel = 'MAIN MENU'
+    this.actions = [
+      { id: 'menu', label: 'MENU' },
+      { id: 'status', label: 'STATUS' },
+      { id: 'cold', label: 'COLD' }
+    ]
+  },
+  startTrainTicker() {
+    this.stopTrainTicker()
+    this.trainValue = 0
+    this.trainDirection = 1
+    this.updateTrainMarker()
+    this.trainTimerId = setInterval(() => {
+      this.trainValue += 10 * this.trainDirection
+      if (this.trainValue >= 100) {
+        this.trainValue = 100
+        this.trainDirection = -1
+      }
+      if (this.trainValue <= 0) {
+        this.trainValue = 0
+        this.trainDirection = 1
+      }
+      this.updateTrainMarker()
+    }, 180)
+  },
+  updateTrainMarker() {
+    const index = Math.max(0, Math.min(9, Math.round(this.trainValue / 11)))
+    let text = ''
+    for (let i = 0; i < 10; i++) {
+      text += i === index ? '|' : '-'
+    }
+    this.trainMarker = text
+    this.trainText = 'STOP IN BOX'
+  },
+  stopTrainTicker() {
+    if (!this.trainTimerId) return
+    clearInterval(this.trainTimerId)
+    this.trainTimerId = 0
+  },
+  saveIfNeeded() {
+    const now = Date.now()
+    if (this.state.petKey !== this.lastSavedPet || now - this.lastSavedAt > 30000) {
+      saveGame(this.state)
+      this.lastSavedAt = now
+      this.lastSavedPet = this.state.petKey
+    }
+  }
+}
+</script>
+
+<style>
+.vpet-page {
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  padding-left: 18px;
+  padding-right: 18px;
+  padding-top: 16px;
+  padding-bottom: 14px;
+  background-color: #030504;
+}
+
+.device-shell {
+  width: 100%;
+  height: 54px;
+  flex-direction: column;
+  border-width: 3px;
+  border-color: #163d28;
+  border-radius: 4px;
+  background-color: #07120d;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.top-strip {
+  width: 100%;
+  height: 30px;
+  flex-direction: row;
+  align-items: center;
+}
+
+.top-left {
+  width: 72px;
+  color: #6cff8e;
+  font-size: 14px;
+}
+
+.top-right {
+  width: 98px;
+  color: #6cff8e;
+  font-size: 14px;
+  text-align: right;
+}
+
+.top-mid {
+  flex-grow: 1;
+  color: #fff06e;
+  font-size: 17px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.bezel-strip {
+  width: 100%;
+  height: 20px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bezel-title {
+  color: #98dca9;
+  font-size: 12px;
+  text-align: center;
+}
+
+.bezel-dot {
+  width: 24px;
+  height: 18px;
+  border-width: 2px;
+  border-color: #2bbd61;
+  border-radius: 3px;
+  color: #b8ffca;
+  font-size: 11px;
+  text-align: center;
+  background-color: #092113;
+}
+
+.lcd {
+  width: 100%;
+  height: 300px;
+  flex-direction: column;
+  border-width: 4px;
+  border-color: #3cff72;
+  border-radius: 4px;
+  background-color: #020503;
+  padding: 8px;
+  margin-top: 8px;
+}
+
+.lcd-status {
+  width: 100%;
+  height: 28px;
+  flex-direction: row;
+  align-items: center;
+  border-bottom-width: 2px;
+  border-bottom-color: #163d28;
+}
+
+.warn {
+  width: 66px;
+  color: #ff6464;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.left-warn {
+  text-align: left;
+}
+
+.right-warn {
+  text-align: right;
+}
+
+.lcd-stage {
+  flex-grow: 1;
+  color: #8dff9d;
+  font-size: 14px;
+  text-align: center;
+}
+
+.scene {
+  width: 100%;
+  height: 196px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom-width: 2px;
+  border-bottom-color: #163d28;
+}
+
+.skyline {
+  width: 150px;
+  height: 28px;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.sky-block {
+  width: 26px;
+  border-width: 2px;
+  border-color: #1f6f46;
+  background-color: #06140c;
+}
+
+.low {
+  height: 10px;
+}
+
+.mid {
+  height: 16px;
+}
+
+.high {
+  height: 23px;
+}
+
+.ground-line {
+  width: 270px;
+  height: 3px;
+  background-color: #28583b;
+  margin-top: 4px;
+}
+
+.battle-scene {
+  width: 100%;
+  height: 196px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  border-bottom-width: 2px;
+  border-bottom-color: #163d28;
+}
+
+.battle-preview-scene {
+  width: 100%;
+  height: 196px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom-width: 2px;
+  border-bottom-color: #163d28;
+}
+
+.battle-sprite {
+  width: 86px;
+  height: 86px;
+}
+
+.enemy-large {
+  width: 92px;
+  height: 92px;
+}
+
+.enemy-name {
+  color: #ffd95f;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.enemy-meta {
+  color: #8dff9d;
+  font-size: 13px;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.enemy-message {
+  color: #ff6464;
+  font-size: 12px;
+  text-align: center;
+  margin-top: 2px;
+}
+
+.battle-center {
+  width: 76px;
+  height: 82px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.battle-vs {
+  color: #ffd95f;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.battle-result {
+  color: #8dff9d;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.train-scene {
+  width: 100%;
+  height: 196px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom-width: 2px;
+  border-bottom-color: #163d28;
+}
+
+.train-title {
+  color: #ffd95f;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.train-track {
+  width: 230px;
+  height: 56px;
+  margin-top: 14px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-width: 3px;
+  border-color: #2bbd61;
+  background-color: #06140c;
+}
+
+.train-zone {
+  width: 54px;
+  height: 8px;
+  background-color: #ffd95f;
+  margin-bottom: 4px;
+}
+
+.train-cursor {
+  color: #d8ffe2;
+  font-size: 22px;
+  text-align: center;
+}
+
+.train-readout {
+  color: #8dff9d;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.status-scene {
+  width: 100%;
+  height: 196px;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 12px;
+  border-bottom-width: 2px;
+  border-bottom-color: #163d28;
+}
+
+.status-row {
+  color: #8dff9d;
+  font-size: 12px;
+  margin-bottom: 1px;
+}
+
+.pet-sprite {
+  width: 116px;
+  height: 116px;
+}
+
+.idle-a {
+  margin-top: -16px;
+  margin-left: -10px;
+}
+
+.idle-b {
+  margin-top: -10px;
+  margin-left: 12px;
+}
+
+.grave {
+  color: #8dff9d;
+  font-size: 50px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.poop {
+  width: 160px;
+  color: #8dff9d;
+  font-size: 13px;
+  text-align: center;
+  margin-top: -12px;
+}
+
+.meter-row {
+  width: 100%;
+  height: 52px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.meter-box {
+  width: 48%;
+  height: 40px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  border-width: 2px;
+  border-color: #1f6f46;
+  border-radius: 3px;
+  background-color: #06140c;
+}
+
+.meter-label {
+  width: 42px;
+  color: #78a889;
+  font-size: 13px;
+  text-align: center;
+}
+
+.heart-line {
+  color: #d8ffe2;
+  font-size: 18px;
+  text-align: center;
+}
+
+.message-box {
+  width: 100%;
+  height: 34px;
+  margin-top: 6px;
+  border-width: 2px;
+  border-color: #1f6f46;
+  border-radius: 4px;
+  background-color: #07120d;
+  align-items: center;
+  justify-content: center;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.message {
+  color: #ffd95f;
+  font-size: 13px;
+  text-align: center;
+}
+
+.tap-strip {
+  width: 100%;
+  height: 26px;
+  margin-top: 8px;
+  align-items: center;
+  justify-content: center;
+}
+
+.tap-text {
+  color: #28583b;
+  font-size: 13px;
+}
+
+.mode-strip {
+  width: 100%;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+}
+
+.mode-label {
+  color: #6cff8e;
+  font-size: 12px;
+}
+
+.action-grid {
+  width: 100%;
+  height: 78px;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-top: 2px;
+}
+
+.action-btn {
+  width: 24%;
+  height: 36px;
+  margin-bottom: 5px;
+  border-width: 2px;
+  border-color: #2bbd61;
+  border-radius: 4px;
+  background-color: #092113;
+  color: #b8ffca;
+  font-size: 12px;
+}
+
+.dead-actions {
+  width: 100%;
+  flex-grow: 1;
+  justify-content: center;
+  align-items: center;
+}
+
+.new-egg {
+  width: 180px;
+  height: 52px;
+  border-width: 3px;
+  border-color: #ffd95f;
+  border-radius: 4px;
+  background-color: #2f2a06;
+  color: #fff6a2;
+  font-size: 20px;
+}
+</style>

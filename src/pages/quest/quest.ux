@@ -1,0 +1,191 @@
+<template>
+  <div class="safe-page">
+    <div class="header">
+      <input class="back" type="button" value="<" onclick="back" />
+      <text class="title">Quest</text>
+      <text class="sub-title">{{selectedVersion}}</text>
+    </div>
+
+    <scroll class="filter-row" scroll-x="true">
+      <input for="{{versionButtons}}" tid="value" class="{{$item.className}}" type="button" value="{{$item.label}}" onclick="setVersion($item.value)" />
+    </scroll>
+
+    <div class="quest-body">
+      <list class="area-list" bounces="true">
+        <list-item for="{{areas}}" tid="area" class="{{$item.className}}" type="area" onclick="selectArea($idx)">
+          <text class="area-name">{{$item.area}}</text>
+        </list-item>
+      </list>
+
+      <div class="area-panel">
+        <text class="sub-title">{{selectedArea.area}}</text>
+        <text class="muted">Unlock: {{unlockText}}</text>
+        <list class="round-list" bounces="true">
+          <list-item for="{{rounds}}" tid="round" class="round-item" type="round" onclick="openCalculator($item.power, $item.attribute)">
+            <image class="sprite-small" src="{{$item.sprite}}"></image>
+            <div class="round-main">
+              <text class="name">R{{$item.round}} {{$item.name}}</text>
+              <text class="meta">{{$item.attribute}} / {{$item.power}}</text>
+            </div>
+          </list-item>
+        </list>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import router from '@system.router'
+import { QUESTS } from '../../common/data/quest.js'
+
+function makeButtons(selected) {
+  return QUESTS.map((item) => ({
+    value: item.version,
+    label: item.version,
+    className: item.version === selected ? 'chip-active' : 'chip'
+  }))
+}
+
+export default {
+  private: {
+    selectedVersion: 'Ver.1',
+    selectedIndex: 0,
+    versionButtons: [],
+    areas: [],
+    selectedArea: {},
+    rounds: [],
+    unlockText: '-'
+  },
+  onShow() {
+    this.refresh()
+  },
+  getCurrentQuest() {
+    for (let i = 0; i < QUESTS.length; i++) {
+      if (QUESTS[i].version === this.selectedVersion) {
+        return QUESTS[i]
+      }
+    }
+    return QUESTS[0]
+  },
+  refresh() {
+    const quest = this.getCurrentQuest()
+    this.versionButtons = makeButtons(this.selectedVersion)
+    this.areas = quest.areas.map((area, index) => ({
+      area: area.area,
+      unlock: area.unlock,
+      rounds: area.rounds,
+      className: index === this.selectedIndex ? 'area-item-active' : 'area-item'
+    }))
+    this.selectedArea = this.areas[this.selectedIndex] || this.areas[0]
+    this.rounds = this.selectedArea.rounds || []
+    this.unlockText = this.selectedArea.unlock || '-'
+  },
+  setVersion(value) {
+    this.selectedVersion = value
+    this.selectedIndex = 0
+    this.refresh()
+  },
+  selectArea(index) {
+    this.selectedIndex = index
+    this.refresh()
+  },
+  openCalculator(power, attribute) {
+    router.push({
+      uri: '/pages/calculator',
+      params: {
+        opponentPowerParam: String(power),
+        opponentAttributeParam: attribute
+      }
+    })
+  },
+  back() {
+    router.back()
+  }
+}
+</script>
+
+<style>
+@import '../../common/style.css';
+
+.filter-row {
+  width: 100%;
+  height: 42px;
+  margin-bottom: 8px;
+  flex-direction: row;
+}
+
+.chip, .chip-active {
+  width: 88px;
+}
+
+.quest-body {
+  width: 100%;
+  flex-grow: 1;
+  flex-direction: row;
+}
+
+.area-list {
+  width: 108px;
+  height: 100%;
+}
+
+.area-item, .area-item-active {
+  width: 100%;
+  height: 46px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  border-width: 2px;
+  border-radius: 4px;
+}
+
+.area-item {
+  border-color: #28583b;
+  background-color: #06140c;
+}
+
+.area-item-active {
+  border-color: #ffd95f;
+  background-color: #2f2a06;
+}
+
+.area-name {
+  color: #d8ffe2;
+  font-size: 17px;
+  text-align: center;
+}
+
+.area-panel {
+  flex-grow: 1;
+  margin-left: 10px;
+  flex-direction: column;
+  border-width: 2px;
+  border-color: #1f6f46;
+  border-radius: 6px;
+  background-color: #07120d;
+  padding: 8px;
+}
+
+.round-list {
+  width: 100%;
+  flex-grow: 1;
+}
+
+.round-item {
+  width: 100%;
+  height: 66px;
+  flex-direction: row;
+  align-items: center;
+  border-width: 1px;
+  border-color: #163d28;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  padding-left: 6px;
+  background-color: #050b08;
+}
+
+.round-main {
+  flex-grow: 1;
+  flex-direction: column;
+}
+</style>
