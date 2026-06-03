@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0 - 2026-06-03
+
+- Reworked the watch home screen around a simplified pet-first LCD idle view.
+- Removed persistent MENU, A/B key decoration, DIGITAL MONSTER branding strip, skyline blocks, thick meter boxes, and the full-width EVO status bar.
+- Added a weak TAP trigger, compact bottom command layer, one-line HUN/POW readout, larger idle sprite presentation, and state-aware Cold/Sleep command trimming.
+
 ## 0.1.1 - 2026-06-03
 
 - Stabilized simulator controls by replacing dynamic command-list buttons with explicit Vela input controls.

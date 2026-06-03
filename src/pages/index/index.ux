@@ -1,23 +1,15 @@
 <template>
   <div class="vpet-page">
-    <div class="device-shell">
-      <div class="top-strip">
-        <text class="top-left">{{model.versionText}}</text>
-        <text class="top-mid">{{model.nameText}}</text>
-        <text class="top-right">{{model.questText}} {{model.ageText}}</text>
-      </div>
-      <div class="bezel-strip">
-        <text class="bezel-dot">A</text>
-        <text class="bezel-title">DIGITAL MONSTER</text>
-        <text class="bezel-dot">B</text>
-      </div>
+    <div class="top-hud">
+      <text class="hud-left">{{model.versionText}}</text>
+      <text class="hud-mid">{{model.nameText}}</text>
+      <text class="hud-right">{{model.questText}} {{model.ageText}}</text>
     </div>
 
-    <div class="lcd" onclick="openCommands">
-      <div class="lcd-status">
-        <text class="warn left-warn">{{model.callText}}</text>
-        <text class="lcd-stage">{{model.stageText}}  EVO {{model.etaText}}</text>
-        <text class="warn right-warn">{{model.coldText}}{{model.sleepText}}</text>
+    <div class="{{lcdClass}}" onclick="openCommands">
+      <div class="stage-mini">
+        <text class="stage-evo">EVO {{model.etaText}}</text>
+        <text class="stage-alert">{{stageAlertText}}</text>
       </div>
 
       <div class="battle-scene" if="{{model.showBattle && !showStatus && !showTrain && !showBattlePreview}}">
@@ -46,12 +38,7 @@
       </div>
 
       <div class="scene" if="{{!showStatus && !model.showBattle && !showTrain && !showBattlePreview}}">
-        <div class="skyline">
-          <div class="sky-block low"></div>
-          <div class="sky-block high"></div>
-          <div class="sky-block mid"></div>
-          <div class="sky-block low"></div>
-        </div>
+        <text class="pet-note">{{petNoteText}}</text>
         <div class="ground-line"></div>
         <text class="grave" if="{{model.showGrave}}">X_X</text>
         <image class="pet-sprite idle-a" if="{{model.showSprite && idleFrame === 0}}" src="{{model.sprite}}"></image>
@@ -62,76 +49,78 @@
       <div class="status-scene" if="{{showStatus}}">
         <text for="{{model.statusRows}}" class="status-row">{{$item}}</text>
       </div>
+    </div>
 
-      <div class="meter-row">
-        <div class="meter-box">
-          <text class="meter-label">HUN</text>
-          <text class="heart-line">{{model.hungerText}}</text>
-        </div>
-        <div class="meter-box">
-          <text class="meter-label">POW</text>
-          <text class="heart-line">{{model.strengthText}}</text>
-        </div>
-      </div>
+    <div class="meter-readout">
+      <text class="meter-text">HUN {{model.hungerText}}   POW {{model.strengthText}}</text>
     </div>
 
     <div class="tap-actions" if="{{!showCommands && !model.showGrave}}">
-      <input class="menu-open-btn" type="button" value="MENU" onclick="runAction('menu')" />
+      <input class="tap-zone" type="button" value="TAP" onclick="runAction('menu')" />
     </div>
 
-    <div class="message-box" if="{{showCommands}}">
-      <text class="message">{{model.statusText}} / {{model.message}}</text>
-    </div>
+    <div class="command-layer" if="{{showCommands}}">
+      <text class="command-message">{{commandMessage}}</text>
 
-    <div class="mode-strip" if="{{showCommands}}">
-      <text class="mode-label">{{modeLabel}}</text>
-    </div>
+      <div class="action-grid" if="{{screenMode === 'menu'}}">
+        <input class="{{menuFoodClass}}" type="button" value="FOOD" onclick="runAction('feed')" />
+        <input class="action-btn" type="button" value="TRAIN" onclick="runAction('trainStart')" />
+        <input class="action-btn" type="button" value="BATTLE" onclick="runAction('battlePreview')" />
+        <input class="{{menuWcClass}}" type="button" value="WC" onclick="runAction('toilet')" />
+        <input class="{{menuMedClass}}" type="button" value="MED" onclick="runAction('med')" />
+        <input class="{{menuLightClass}}" type="button" value="LIGHT" onclick="runAction('light')" />
+        <input class="action-btn" type="button" value="COLD" onclick="runAction('cold')" />
+        <input class="action-btn" type="button" value="STATUS" onclick="runAction('status')" />
+        <input class="action-btn" type="button" value="DATA" onclick="runAction('data')" />
+        <input class="action-btn back-btn" type="button" value="BACK" onclick="runAction('back')" />
+      </div>
 
-    <div class="action-grid" if="{{screenMode === 'menu'}}">
-      <input class="action-btn" type="button" value="FOOD" onclick="runAction('feed')" />
-      <input class="action-btn" type="button" value="TRAIN" onclick="runAction('trainStart')" />
-      <input class="action-btn" type="button" value="BATTLE" onclick="runAction('battlePreview')" />
-      <input class="action-btn" type="button" value="WC" onclick="runAction('toilet')" />
-      <input class="action-btn" type="button" value="MED" onclick="runAction('med')" />
-      <input class="action-btn" type="button" value="LIGHT" onclick="runAction('light')" />
-      <input class="action-btn" type="button" value="COLD" onclick="runAction('cold')" />
-      <input class="action-btn" type="button" value="DATA" onclick="runAction('data')" />
-      <input class="action-btn" type="button" value="BACK" onclick="runAction('back')" />
-    </div>
+      <div class="action-grid compact-grid" if="{{screenMode === 'feed'}}">
+        <input class="compact-action-btn" type="button" value="MEAT" onclick="runAction('meat')" />
+        <input class="compact-action-btn" type="button" value="VIT" onclick="runAction('vitamin')" />
+        <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
+      </div>
 
-    <div class="action-grid compact-grid" if="{{screenMode === 'feed'}}">
-      <input class="compact-action-btn" type="button" value="MEAT" onclick="runAction('meat')" />
-      <input class="compact-action-btn" type="button" value="VIT" onclick="runAction('vitamin')" />
-      <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
-    </div>
+      <div class="action-grid compact-grid" if="{{screenMode === 'status'}}">
+        <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
+        <input class="compact-action-btn" type="button" value="DATA" onclick="runAction('data')" />
+        <input class="compact-action-btn" type="button" value="RESET" onclick="runAction('resetAsk')" />
+      </div>
 
-    <div class="action-grid compact-grid" if="{{screenMode === 'status'}}">
-      <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
-      <input class="compact-action-btn" type="button" value="DATA" onclick="runAction('data')" />
-      <input class="compact-action-btn" type="button" value="RESET" onclick="runAction('resetAsk')" />
-    </div>
+      <div class="action-grid compact-grid" if="{{screenMode === 'coldMenu'}}">
+        <input class="compact-action-btn" type="button" value="RESUME" onclick="runAction('cold')" />
+        <input class="compact-action-btn" type="button" value="STATUS" onclick="runAction('status')" />
+        <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
+      </div>
 
-    <div class="action-grid compact-grid" if="{{screenMode === 'resetConfirm'}}">
-      <input class="compact-action-btn danger-btn" type="button" value="NEW EGG" onclick="runAction('reset')" />
-      <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
-    </div>
+      <div class="action-grid compact-grid" if="{{screenMode === 'sleepMenu'}}">
+        <input class="compact-action-btn" type="button" value="LIGHT" onclick="runAction('light')" />
+        <input class="compact-action-btn" type="button" value="STATUS" onclick="runAction('status')" />
+        <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
+      </div>
 
-    <div class="action-grid compact-grid" if="{{screenMode === 'train'}}">
-      <input class="compact-action-btn" type="button" value="STOP" onclick="runAction('trainStop')" />
-      <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
-    </div>
+      <div class="action-grid compact-grid" if="{{screenMode === 'resetConfirm'}}">
+        <input class="compact-action-btn danger-btn" type="button" value="NEW EGG" onclick="runAction('reset')" />
+        <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
+      </div>
 
-    <div class="action-grid compact-grid" if="{{screenMode === 'trainResult'}}">
-      <input class="compact-action-btn" type="button" value="OK" onclick="runAction('back')" />
-    </div>
+      <div class="action-grid compact-grid" if="{{screenMode === 'train'}}">
+        <input class="compact-action-btn" type="button" value="STOP" onclick="runAction('trainStop')" />
+        <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
+      </div>
 
-    <div class="action-grid compact-grid" if="{{screenMode === 'battlePreview'}}">
-      <input class="compact-action-btn" type="button" value="START" onclick="runAction('battleStart')" />
-      <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
-    </div>
+      <div class="action-grid compact-grid" if="{{screenMode === 'trainResult'}}">
+        <input class="compact-action-btn" type="button" value="OK" onclick="runAction('back')" />
+      </div>
 
-    <div class="action-grid compact-grid" if="{{screenMode === 'battleResult'}}">
-      <input class="compact-action-btn" type="button" value="OK" onclick="runAction('back')" />
+      <div class="action-grid compact-grid" if="{{screenMode === 'battlePreview'}}">
+        <input class="compact-action-btn" type="button" value="START" onclick="runAction('battleStart')" />
+        <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
+      </div>
+
+      <div class="action-grid compact-grid" if="{{screenMode === 'battleResult'}}">
+        <input class="compact-action-btn" type="button" value="OK" onclick="runAction('back')" />
+      </div>
     </div>
 
     <div class="dead-actions" if="{{showDeadAction}}">
@@ -186,6 +175,14 @@ export default {
     trainTimerId: 0,
     trainMarker: '|---------',
     trainText: 'STOP IN BOX',
+    lcdClass: 'lcd home-lcd',
+    commandMessage: 'SELECT CARE',
+    stageAlertText: '',
+    petNoteText: '',
+    menuFoodClass: 'action-btn',
+    menuWcClass: 'action-btn',
+    menuMedClass: 'action-btn',
+    menuLightClass: 'action-btn',
     battlePreview: {
       canBattle: false,
       message: '',
@@ -245,6 +242,7 @@ export default {
   runAction(action) {
     if (action === 'feed') {
       this.screenMode = 'feed'
+      this.menuOpenedAt = Date.now()
       this.syncMode()
       return
     }
@@ -255,9 +253,7 @@ export default {
       return
     }
     if (action === 'menu') {
-      this.screenMode = 'menu'
-      this.menuOpenedAt = Date.now()
-      this.syncMode()
+      this.openDefaultMenu()
       return
     }
     if (action === 'trainStart') {
@@ -313,6 +309,12 @@ export default {
     }
     this.state = applyAction(this.state, action)
     this.afterEngineAction(action === 'battle' || action === 'cold' || action === 'med')
+    if (action === 'meat' || action === 'vitamin') {
+      this.screenMode = 'feed'
+      this.menuOpenedAt = Date.now()
+      this.syncMode()
+      return
+    }
     this.screenMode = 'main'
     this.syncMode()
   },
@@ -332,20 +334,46 @@ export default {
     })
   },
   openCommands() {
-    if (this.screenMode === 'main' && !this.model.showGrave) {
-      this.screenMode = 'menu'
-      this.menuOpenedAt = Date.now()
+    if (this.model.showGrave) return
+    if (this.showCommands) {
+      this.screenMode = 'main'
+      this.stopTrainTicker()
       this.syncMode()
+      return
     }
+    this.openDefaultMenu()
+  },
+  openDefaultMenu() {
+    if (this.model.showGrave) return
+    if (this.state.cold) {
+      this.screenMode = 'coldMenu'
+    } else if (this.state.asleep) {
+      this.screenMode = 'sleepMenu'
+    } else {
+      this.screenMode = 'menu'
+    }
+    this.menuOpenedAt = Date.now()
+    this.syncMode()
   },
   syncMode() {
     this.showStatus = this.screenMode === 'status'
     this.showTrain = this.screenMode === 'train' || this.screenMode === 'trainResult'
     this.showBattlePreview = this.screenMode === 'battlePreview'
     this.showDeadAction = this.model.showGrave && this.screenMode !== 'resetConfirm'
+    this.lcdClass = this.screenMode === 'main' ? 'lcd home-lcd' : 'lcd command-lcd'
+    this.stageAlertText = this.model.callText || this.model.coldText || this.model.sleepText || ''
+    if (!this.stageAlertText && this.state.sick) this.stageAlertText = 'SICK'
+    if (!this.stageAlertText && this.state.injured) this.stageAlertText = 'HURT'
+    this.petNoteText = this.model.coldText || this.model.sleepText || ''
+    this.menuFoodClass = (this.state.hunger < 4 || this.state.strength < 4) ? 'action-btn hot-btn' : 'action-btn'
+    this.menuWcClass = this.state.poop > 0 ? 'action-btn hot-btn' : 'action-btn'
+    this.menuMedClass = (this.state.sick || this.state.injured) ? 'action-btn hot-btn' : 'action-btn'
+    this.menuLightClass = this.state.asleep ? 'action-btn hot-btn' : 'action-btn'
+    this.commandMessage = this.model.callText ? 'CALL / SELECT CARE' : 'SELECT CARE'
     if (this.screenMode === 'feed') {
       this.showCommands = true
       this.modeLabel = 'FOOD MENU'
+      this.commandMessage = 'FOOD MENU'
       this.actions = [
         { id: 'meat', label: 'MEAT' },
         { id: 'vitamin', label: 'VIT' },
@@ -356,6 +384,7 @@ export default {
     if (this.screenMode === 'status') {
       this.showCommands = true
       this.modeLabel = 'STATUS'
+      this.commandMessage = 'STATUS'
       this.actions = [
         { id: 'back', label: 'BACK' },
         { id: 'data', label: 'DATA' },
@@ -366,6 +395,7 @@ export default {
     if (this.screenMode === 'resetConfirm') {
       this.showCommands = true
       this.modeLabel = 'RESET?'
+      this.commandMessage = 'RESET?'
       this.actions = [
         { id: 'reset', label: 'NEW EGG' },
         { id: 'back', label: 'BACK' }
@@ -375,6 +405,7 @@ export default {
     if (this.screenMode === 'train') {
       this.showCommands = true
       this.modeLabel = 'TRAIN'
+      this.commandMessage = 'TRAIN'
       this.actions = [
         { id: 'trainStop', label: 'STOP' },
         { id: 'back', label: 'BACK' }
@@ -384,6 +415,7 @@ export default {
     if (this.screenMode === 'trainResult') {
       this.showCommands = true
       this.modeLabel = 'RESULT'
+      this.commandMessage = 'RESULT'
       this.actions = [
         { id: 'back', label: 'OK' }
       ]
@@ -392,6 +424,7 @@ export default {
     if (this.screenMode === 'battlePreview') {
       this.showCommands = true
       this.modeLabel = this.battlePreview.areaText
+      this.commandMessage = this.battlePreview.areaText
       this.actions = [
         { id: 'battleStart', label: 'START' },
         { id: 'back', label: 'BACK' }
@@ -401,8 +434,31 @@ export default {
     if (this.screenMode === 'battleResult') {
       this.showCommands = true
       this.modeLabel = 'BATTLE'
+      this.commandMessage = 'BATTLE'
       this.actions = [
         { id: 'back', label: 'OK' }
+      ]
+      return
+    }
+    if (this.screenMode === 'coldMenu') {
+      this.showCommands = true
+      this.modeLabel = 'COLD'
+      this.commandMessage = 'COLD'
+      this.actions = [
+        { id: 'cold', label: 'RESUME' },
+        { id: 'status', label: 'STATUS' },
+        { id: 'back', label: 'BACK' }
+      ]
+      return
+    }
+    if (this.screenMode === 'sleepMenu') {
+      this.showCommands = true
+      this.modeLabel = 'SLEEP'
+      this.commandMessage = 'SLEEP'
+      this.actions = [
+        { id: 'light', label: 'LIGHT' },
+        { id: 'status', label: 'STATUS' },
+        { id: 'back', label: 'BACK' }
       ]
       return
     }
@@ -423,6 +479,8 @@ export default {
       return
     }
     this.showCommands = false
+    this.lcdClass = 'lcd home-lcd'
+    this.commandMessage = 'SELECT CARE'
     this.modeLabel = 'MAIN MENU'
     this.actions = [
       { id: 'menu', label: 'MENU' },
@@ -478,194 +536,130 @@ export default {
   width: 100%;
   height: 100%;
   flex-direction: column;
-  padding-left: 18px;
-  padding-right: 18px;
-  padding-top: 16px;
-  padding-bottom: 14px;
+  padding-left: 14px;
+  padding-right: 14px;
+  padding-top: 12px;
+  padding-bottom: 10px;
   background-color: #030504;
 }
 
-.device-shell {
+.top-hud {
   width: 100%;
-  height: 54px;
-  flex-direction: column;
-  border-width: 3px;
-  border-color: #163d28;
-  border-radius: 4px;
-  background-color: #07120d;
-  padding-left: 8px;
-  padding-right: 8px;
-}
-
-.top-strip {
-  width: 100%;
-  height: 30px;
+  height: 26px;
   flex-direction: row;
   align-items: center;
 }
 
-.top-left {
+.hud-left {
   width: 72px;
-  color: #6cff8e;
-  font-size: 14px;
+  color: #7ccf92;
+  font-size: 13px;
 }
 
-.top-right {
-  width: 98px;
-  color: #6cff8e;
-  font-size: 14px;
+.hud-right {
+  width: 96px;
+  color: #7ccf92;
+  font-size: 12px;
   text-align: right;
 }
 
-.top-mid {
+.hud-mid {
   flex-grow: 1;
-  color: #fff06e;
-  font-size: 17px;
-  font-weight: bold;
+  color: #ddec8e;
+  font-size: 14px;
   text-align: center;
-}
-
-.bezel-strip {
-  width: 100%;
-  height: 20px;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.bezel-title {
-  color: #98dca9;
-  font-size: 12px;
-  text-align: center;
-}
-
-.bezel-dot {
-  width: 24px;
-  height: 18px;
-  border-width: 2px;
-  border-color: #2bbd61;
-  border-radius: 3px;
-  color: #b8ffca;
-  font-size: 11px;
-  text-align: center;
-  background-color: #092113;
 }
 
 .lcd {
   width: 100%;
-  height: 300px;
   flex-direction: column;
-  border-width: 4px;
-  border-color: #3cff72;
+  border-width: 2px;
+  border-color: #205f3c;
   border-radius: 4px;
   background-color: #020503;
-  padding: 8px;
-  margin-top: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  margin-top: 3px;
 }
 
-.lcd-status {
+.home-lcd {
+  height: 374px;
+}
+
+.command-lcd {
+  height: 274px;
+}
+
+.stage-mini {
   width: 100%;
-  height: 28px;
+  height: 18px;
   flex-direction: row;
   align-items: center;
-  border-bottom-width: 2px;
-  border-bottom-color: #163d28;
 }
 
-.warn {
-  width: 66px;
-  color: #ff6464;
-  font-size: 14px;
-  font-weight: bold;
+.stage-evo {
+  width: 90px;
+  color: #477d58;
+  font-size: 11px;
 }
 
-.left-warn {
-  text-align: left;
-}
-
-.right-warn {
-  text-align: right;
-}
-
-.lcd-stage {
+.stage-alert {
   flex-grow: 1;
-  color: #8dff9d;
-  font-size: 14px;
-  text-align: center;
+  color: #ffd95f;
+  font-size: 11px;
+  text-align: right;
 }
 
 .scene {
   width: 100%;
-  height: 196px;
+  flex-grow: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-bottom-width: 2px;
-  border-bottom-color: #163d28;
 }
 
-.skyline {
-  width: 150px;
-  height: 28px;
-  flex-direction: row;
-  align-items: flex-end;
-  justify-content: space-between;
-}
-
-.sky-block {
-  width: 26px;
-  border-width: 2px;
-  border-color: #1f6f46;
-  background-color: #06140c;
-}
-
-.low {
-  height: 10px;
-}
-
-.mid {
-  height: 16px;
-}
-
-.high {
-  height: 23px;
+.pet-note {
+  width: 100%;
+  height: 18px;
+  color: #6fa580;
+  font-size: 13px;
+  text-align: center;
 }
 
 .ground-line {
   width: 270px;
-  height: 3px;
-  background-color: #28583b;
-  margin-top: 4px;
+  height: 2px;
+  background-color: #234d34;
+  margin-top: 28px;
+  margin-bottom: -42px;
 }
 
 .battle-scene {
   width: 100%;
-  height: 196px;
+  flex-grow: 1;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  border-bottom-width: 2px;
-  border-bottom-color: #163d28;
 }
 
 .battle-preview-scene {
   width: 100%;
-  height: 196px;
+  flex-grow: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-bottom-width: 2px;
-  border-bottom-color: #163d28;
 }
 
 .battle-sprite {
-  width: 86px;
-  height: 86px;
+  width: 96px;
+  height: 96px;
 }
 
 .enemy-large {
-  width: 92px;
-  height: 92px;
+  width: 104px;
+  height: 104px;
 }
 
 .enemy-name {
@@ -712,12 +706,10 @@ export default {
 
 .train-scene {
   width: 100%;
-  height: 196px;
+  flex-grow: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-bottom-width: 2px;
-  border-bottom-color: #163d28;
 }
 
 .train-title {
@@ -761,12 +753,10 @@ export default {
 
 .status-scene {
   width: 100%;
-  height: 196px;
+  flex-grow: 1;
   flex-direction: column;
   justify-content: center;
   padding-left: 12px;
-  border-bottom-width: 2px;
-  border-bottom-color: #163d28;
 }
 
 .status-row {
@@ -776,18 +766,18 @@ export default {
 }
 
 .pet-sprite {
-  width: 116px;
-  height: 116px;
+  width: 128px;
+  height: 128px;
 }
 
 .idle-a {
-  margin-top: -16px;
-  margin-left: -10px;
+  margin-top: 18px;
+  margin-left: -8px;
 }
 
 .idle-b {
-  margin-top: -10px;
-  margin-left: 12px;
+  margin-top: 12px;
+  margin-left: 8px;
 }
 
 .grave {
@@ -802,132 +792,103 @@ export default {
   color: #8dff9d;
   font-size: 13px;
   text-align: center;
-  margin-top: -12px;
+  margin-top: -10px;
+  margin-left: 92px;
 }
 
-.meter-row {
+.meter-readout {
   width: 100%;
-  height: 52px;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding-left: 6px;
-  padding-right: 6px;
-}
-
-.meter-box {
-  width: 48%;
-  height: 40px;
-  flex-direction: row;
+  height: 32px;
   align-items: center;
   justify-content: center;
-  border-width: 2px;
-  border-color: #1f6f46;
-  border-radius: 3px;
-  background-color: #06140c;
+  margin-top: 5px;
 }
 
-.meter-label {
-  width: 42px;
-  color: #78a889;
-  font-size: 13px;
-  text-align: center;
-}
-
-.heart-line {
-  color: #d8ffe2;
-  font-size: 18px;
-  text-align: center;
-}
-
-.message-box {
-  width: 100%;
-  height: 34px;
-  margin-top: 6px;
-  border-width: 2px;
-  border-color: #1f6f46;
-  border-radius: 4px;
-  background-color: #07120d;
-  align-items: center;
-  justify-content: center;
-  padding-left: 8px;
-  padding-right: 8px;
-}
-
-.message {
-  color: #ffd95f;
-  font-size: 13px;
+.meter-text {
+  color: #9bc8a8;
+  font-size: 14px;
   text-align: center;
 }
 
 .tap-actions {
   width: 100%;
-  height: 58px;
-  margin-top: 8px;
+  height: 24px;
+  margin-top: 2px;
   align-items: center;
   justify-content: center;
 }
 
-.menu-open-btn {
-  width: 180px;
-  height: 48px;
-  border-width: 3px;
-  border-color: #2bbd61;
-  border-radius: 4px;
-  background-color: #092113;
-  color: #b8ffca;
-  font-size: 18px;
-}
-
-.mode-strip {
+.tap-zone {
   width: 100%;
-  height: 18px;
-  align-items: center;
-  justify-content: center;
+  height: 24px;
+  border-width: 0px;
+  background-color: #030504;
+  color: #183421;
+  font-size: 11px;
 }
 
-.mode-label {
-  color: #6cff8e;
+.command-layer {
+  width: 100%;
+  height: 126px;
+  flex-direction: column;
+  margin-top: 4px;
+}
+
+.command-message {
+  width: 100%;
+  height: 20px;
+  color: #6fa580;
   font-size: 12px;
+  text-align: center;
 }
 
 .action-grid {
   width: 100%;
-  height: 78px;
+  height: 104px;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-between;
-  margin-top: 2px;
 }
 
 .compact-grid {
   justify-content: center;
+  align-items: center;
 }
 
 .action-btn {
-  width: 24%;
-  height: 36px;
-  margin-bottom: 5px;
-  border-width: 2px;
-  border-color: #2bbd61;
-  border-radius: 4px;
-  background-color: #092113;
-  color: #b8ffca;
-  font-size: 12px;
+  width: 31%;
+  height: 30px;
+  margin-bottom: 4px;
+  border-width: 1px;
+  border-color: #2c8f52;
+  border-radius: 3px;
+  background-color: #07160d;
+  color: #9bd9aa;
+  font-size: 11px;
+}
+
+.hot-btn {
+  border-color: #ffd95f;
+  color: #fff1a3;
+  background-color: #172008;
+}
+
+.back-btn {
+  width: 31%;
 }
 
 .compact-action-btn {
   width: 30%;
-  height: 36px;
-  margin-bottom: 5px;
+  height: 32px;
+  margin-bottom: 4px;
   margin-left: 8px;
   margin-right: 8px;
-  border-width: 2px;
+  border-width: 1px;
   border-color: #2bbd61;
-  border-radius: 4px;
-  background-color: #092113;
-  color: #b8ffca;
-  font-size: 12px;
+  border-radius: 3px;
+  background-color: #07160d;
+  color: #9bd9aa;
+  font-size: 11px;
 }
 
 .danger-btn {
