@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 - 2026-06-03
+
+- Adjusted the LCD stage ground line so the pet stands on it instead of having the line float above the sprite.
+
 ## 0.3.0 - 2026-06-03
 
 - Reworked the home screen toward the video-evidence DMC Color UI: light square LCD, internal top/bottom icon rails, and a larger central pet stage.

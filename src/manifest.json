@@ -1,8 +1,8 @@
 {
   "package": "com.learning.multivpet.dmcwatch",
   "name": "DMC VPET",
-  "versionName": "0.3.0",
-  "versionCode": 9,
+  "versionName": "0.3.1",
+  "versionCode": 10,
   "minPlatformVersion": 1200,
   "icon": "/common/logo.png",
   "simulationVersion": "default",

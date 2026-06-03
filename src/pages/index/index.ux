@@ -36,10 +36,10 @@
       <div class="scene" if="{{!showStatus && !model.showBattle && !showTrain && !showBattlePreview}}">
         <text class="pet-note">{{petNoteText}}</text>
         <text class="action-feedback" if="{{showActionFeedback}}">{{actionFeedbackText}}</text>
-        <div class="ground-line"></div>
         <text class="grave" if="{{model.showGrave}}">X_X</text>
         <image class="pet-sprite idle-a" if="{{model.showSprite && idleFrame === 0}}" src="{{model.sprite}}"></image>
         <image class="pet-sprite idle-b" if="{{model.showSprite && idleFrame === 1}}" src="{{model.sprite}}"></image>
+        <div class="ground-line"></div>
         <text class="poop">{{model.poopText}}</text>
       </div>
 
@@ -586,8 +586,8 @@ export default {
   width: 286px;
   height: 3px;
   background-color: #7aa467;
-  margin-top: 42px;
-  margin-bottom: -52px;
+  margin-top: -18px;
+  margin-bottom: 0px;
 }
 
 .battle-scene {
