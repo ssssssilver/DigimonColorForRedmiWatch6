@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.5 - 2026-06-03
+
+- Added short LCD-stage feedback for care actions such as food, toilet, medicine, light, Cold Mode, and blocked battle starts.
+- Kept feedback in the pet stage instead of relying on the bottom command text, matching the updated quick-app design direction.
+
 ## 0.2.4 - 2026-06-03
 
 - Aligned the Vela design width with the updated quick-app design document.

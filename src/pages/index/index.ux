@@ -39,6 +39,7 @@
 
       <div class="scene" if="{{!showStatus && !model.showBattle && !showTrain && !showBattlePreview}}">
         <text class="pet-note">{{petNoteText}}</text>
+        <text class="action-feedback" if="{{showActionFeedback}}">{{actionFeedbackText}}</text>
         <div class="ground-line"></div>
         <text class="grave" if="{{model.showGrave}}">X_X</text>
         <image class="pet-sprite idle-a" if="{{model.showSprite && idleFrame === 0}}" src="{{model.sprite}}"></image>
@@ -161,6 +162,7 @@ export default {
       battleResultText: ''
     },
     timerId: 0,
+    feedbackTimerId: 0,
     lastSavedAt: 0,
     lastSavedPet: '',
     screenMode: 'main',
@@ -179,6 +181,8 @@ export default {
     commandMessage: 'SELECT CARE',
     stageAlertText: '',
     petNoteText: '',
+    showActionFeedback: false,
+    actionFeedbackText: '',
     menuFoodClass: 'action-btn',
     menuWcClass: 'action-btn',
     menuMedClass: 'action-btn',
@@ -230,6 +234,7 @@ export default {
     clearInterval(this.timerId)
     this.timerId = 0
     this.stopTrainTicker()
+    this.clearFeedbackTimer()
   },
   persistNow() {
     if (!this.state.petKey) return
@@ -294,6 +299,7 @@ export default {
     if (action === 'battleStart') {
       if (!this.battlePreview.canBattle) {
         this.state.message = this.battlePreview.message
+        this.showStageFeedback(this.state.message)
         this.screenMode = 'main'
         this.syncMode()
         return
@@ -319,6 +325,7 @@ export default {
     }
     this.state = applyAction(this.state, action)
     this.afterEngineAction(action === 'battle' || action === 'cold' || action === 'med')
+    this.showStageFeedback(this.feedbackTextForAction(action))
     if (action === 'meat' || action === 'vitamin') {
       this.screenMode = 'feed'
       this.menuOpenedAt = Date.now()
@@ -334,6 +341,33 @@ export default {
     saveGame(this.state)
     this.lastSavedAt = Date.now()
     this.lastSavedPet = this.state.petKey
+  },
+  feedbackTextForAction(action) {
+    if (action === 'meat') return this.state.message === 'Too full.' ? 'FULL' : 'MEAT +'
+    if (action === 'vitamin') return this.state.message === 'Overfed.' ? 'OVER' : 'VIT +'
+    if (action === 'toilet') return this.state.message === 'Cleaned.' ? 'CLEAN' : 'CLEAN OK'
+    if (action === 'med') return this.state.message === 'Recovered.' ? 'RECOVER' : 'MED OK'
+    if (action === 'light') return this.state.asleep ? 'LIGHT OFF' : 'LIGHT ON'
+    if (action === 'cold') return this.state.cold ? 'COLD' : 'RESUME'
+    if (action === 'data') return this.state.message
+    if (action === 'reset') return 'NEW EGG'
+    return this.state.message || ''
+  },
+  showStageFeedback(text) {
+    if (!text) return
+    this.actionFeedbackText = text
+    this.showActionFeedback = true
+    this.clearFeedbackTimer()
+    this.feedbackTimerId = setTimeout(() => {
+      this.showActionFeedback = false
+      this.actionFeedbackText = ''
+      this.feedbackTimerId = 0
+    }, 1600)
+  },
+  clearFeedbackTimer() {
+    if (!this.feedbackTimerId) return
+    clearTimeout(this.feedbackTimerId)
+    this.feedbackTimerId = 0
   },
   buzz() {
     if (!vibrator || !vibrator.vibrate) return
@@ -636,6 +670,21 @@ export default {
   color: #6fa580;
   font-size: 13px;
   text-align: center;
+}
+
+.action-feedback {
+  width: 170px;
+  height: 26px;
+  color: #fff1a3;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  border-width: 1px;
+  border-color: #7ccf92;
+  border-radius: 3px;
+  background-color: #07160d;
+  margin-top: 4px;
+  margin-bottom: -28px;
 }
 
 .ground-line {
