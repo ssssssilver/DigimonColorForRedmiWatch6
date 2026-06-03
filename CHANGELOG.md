@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.3 - 2026-06-03
+
+- Removed unregistered reference pages and their page-only helpers/styles from the runtime source tree.
+- Removed local GIF sprite backups; runtime keeps the PNG sprites validated by the game data.
+- Deleted an unused untracked product-plan draft from the workspace.
+
 ## 0.2.2 - 2026-06-03
 
 - Fixed Cold Mode to pause age and evolution deadlines instead of only blocking hunger, strength, and poop ticks.
