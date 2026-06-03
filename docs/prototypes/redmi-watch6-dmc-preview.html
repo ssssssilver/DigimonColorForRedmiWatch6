@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DMC Watch Preview</title>
+  <style>
+    :root {
+      --bg: #050807;
+      --case: #07120d;
+      --case-line: #163d28;
+      --lcd: #020503;
+      --green: #6cff8e;
+      --green-2: #8dff9d;
+      --green-3: #2bbd61;
+      --muted: #78a889;
+      --yellow: #fff06e;
+      --red: #ff6464;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background: #111;
+      font-family: "Courier New", monospace;
+    }
+
+    .watch {
+      position: relative;
+      width: 432px;
+      height: 514px;
+      padding: 16px 18px 14px;
+      overflow: hidden;
+      background: var(--bg);
+      color: #d8ffe2;
+      cursor: pointer;
+    }
+
+    .shell {
+      height: 54px;
+      padding: 0 8px;
+      border: 3px solid var(--case-line);
+      border-radius: 4px;
+      background: var(--case);
+    }
+
+    .top,
+    .brand,
+    .lcd-bar,
+    .meters,
+    .meter,
+    .battle,
+    .menu-grid {
+      display: flex;
+    }
+
+    .top {
+      height: 30px;
+      align-items: center;
+    }
+
+    .top span {
+      color: var(--green);
+      font-size: 13px;
+    }
+
+    .top .name {
+      flex: 1;
+      color: var(--yellow);
+      font-size: 16px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .top .right {
+      width: 96px;
+      text-align: right;
+    }
+
+    .brand {
+      height: 20px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .pill {
+      width: 24px;
+      height: 18px;
+      border: 2px solid var(--green-3);
+      border-radius: 3px;
+      color: #b8ffca;
+      background: #092113;
+      font-size: 11px;
+      line-height: 14px;
+      text-align: center;
+    }
+
+    .brand-title {
+      color: #98dca9;
+      font-size: 12px;
+    }
+
+    .lcd {
+      position: relative;
+      height: 300px;
+      margin-top: 8px;
+      padding: 8px;
+      border: 4px solid #3cff72;
+      border-radius: 4px;
+      background: var(--lcd);
+      overflow: hidden;
+    }
+
+    .lcd-bar {
+      height: 28px;
+      align-items: center;
+      border-bottom: 2px solid var(--case-line);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .warn {
+      width: 66px;
+      color: var(--red);
+    }
+
+    .stage {
+      flex: 1;
+      color: var(--green-2);
+      text-align: center;
+    }
+
+    .scene,
+    .status-scene {
+      position: relative;
+      height: 196px;
+      border-bottom: 2px solid var(--case-line);
+    }
+
+    .skyline {
+      position: absolute;
+      left: 50%;
+      top: 24px;
+      width: 158px;
+      height: 32px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      transform: translateX(-50%);
+    }
+
+    .skyline i {
+      width: 27px;
+      border: 2px solid #1f6f46;
+      background: #06140c;
+    }
+
+    .skyline i:nth-child(1),
+    .skyline i:nth-child(4) {
+      height: 11px;
+    }
+
+    .skyline i:nth-child(2) {
+      height: 25px;
+    }
+
+    .skyline i:nth-child(3) {
+      height: 18px;
+    }
+
+    .ground {
+      position: absolute;
+      left: 50%;
+      top: 64px;
+      width: 270px;
+      height: 3px;
+      background: #28583b;
+      transform: translateX(-50%);
+    }
+
+    .pet {
+      position: absolute;
+      left: 50%;
+      top: 80px;
+      width: 116px;
+      height: 116px;
+      image-rendering: pixelated;
+      transform: translateX(-50%);
+      animation: idle-step 1.25s steps(1, end) infinite;
+    }
+
+    @keyframes idle-step {
+      0%, 49% {
+        transform: translateX(-58px) translateY(0);
+      }
+      50%, 100% {
+        transform: translateX(-44px) translateY(-5px);
+      }
+    }
+
+    .poop {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 8px;
+      color: var(--green-2);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .battle {
+      height: 196px;
+      align-items: center;
+      justify-content: center;
+      border-bottom: 2px solid var(--case-line);
+    }
+
+    .battle img {
+      width: 86px;
+      height: 86px;
+      image-rendering: pixelated;
+    }
+
+    .vs {
+      width: 76px;
+      color: var(--yellow);
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .vs small {
+      display: block;
+      margin-top: 4px;
+      color: var(--green-2);
+      font-size: 14px;
+    }
+
+    .status-scene {
+      padding: 26px 18px 0;
+      color: var(--green-2);
+      font-size: 14px;
+      line-height: 20px;
+    }
+
+    .meters {
+      height: 52px;
+      padding: 6px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .meter {
+      width: 48%;
+      height: 40px;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #1f6f46;
+      border-radius: 3px;
+      background: #06140c;
+      font-size: 18px;
+    }
+
+    .meter b {
+      width: 42px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .tap {
+      height: 26px;
+      margin-top: 8px;
+      display: grid;
+      place-items: center;
+      color: #28583b;
+      font-size: 13px;
+    }
+
+    .message {
+      height: 34px;
+      margin-top: 6px;
+      padding: 0 8px;
+      display: none;
+      place-items: center;
+      border: 2px solid #1f6f46;
+      border-radius: 4px;
+      background: var(--case);
+      color: #ffd95f;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .mode {
+      height: 18px;
+      display: none;
+      place-items: center;
+      color: var(--green);
+      font-size: 12px;
+    }
+
+    .menu-grid {
+      display: none;
+      height: 78px;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      margin-top: 2px;
+    }
+
+    button {
+      width: 24%;
+      height: 36px;
+      margin-bottom: 5px;
+      border: 2px solid var(--green-3);
+      border-radius: 4px;
+      background: #092113;
+      color: #b8ffca;
+      font: 700 12px "Courier New", monospace;
+      cursor: pointer;
+    }
+
+    button:active,
+    button.active {
+      border-color: var(--yellow);
+      background: #2f2a06;
+      color: #fff6a2;
+    }
+
+    .menu-open .tap {
+      display: none;
+    }
+
+    .menu-open .message,
+    .menu-open .mode {
+      display: grid;
+    }
+
+    .menu-open .menu-grid {
+      display: flex;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <main class="watch" id="watch">
+    <section class="shell">
+      <div class="top">
+        <span>Ver.5</span>
+        <span class="name" id="petName">GAZIMON</span>
+        <span class="right">Q1-1 0h</span>
+      </div>
+      <div class="brand">
+        <span class="pill">A</span>
+        <span class="brand-title">DIGITAL MONSTER</span>
+        <span class="pill">B</span>
+      </div>
+    </section>
+
+    <section class="lcd" id="lcd">
+      <div class="lcd-bar">
+        <span class="warn" id="leftFlag"></span>
+        <span class="stage" id="stageText">III  EVO 23h</span>
+        <span class="warn" id="rightFlag"></span>
+      </div>
+
+      <div class="scene" id="scene">
+        <div class="skyline"><i></i><i></i><i></i><i></i></div>
+        <div class="ground"></div>
+        <img class="pet" id="petSprite" alt="Gazimon sprite" src="../../src/common/digimon/gazi.png">
+        <div class="poop" id="poop"></div>
+      </div>
+
+      <div class="battle hidden" id="battleScene">
+        <img alt="Gazimon sprite" src="../../src/common/digimon/gazi.png">
+        <div class="vs">VS<small>WIN</small></div>
+        <img alt="Gizamon sprite" src="../../src/common/digimon/giza.png">
+      </div>
+
+      <div class="status-scene hidden" id="statusScene">
+        NAME GAZIMON<br>
+        AGE 0h WT 18g<br>
+        HUN 3/4 POW 4/4<br>
+        EFF 6 CM 1<br>
+        BAT 1/1 WR 100%<br>
+        Q1-1 GIZAMON
+      </div>
+
+      <div class="meters">
+        <div class="meter"><b>HUN</b>###-</div>
+        <div class="meter"><b>POW</b>####</div>
+      </div>
+    </section>
+
+    <div class="tap">TAP SCREEN</div>
+    <div class="message" id="message">CALL / Select care.</div>
+    <div class="mode" id="mode">COMMAND</div>
+
+    <nav class="menu-grid" id="actions"></nav>
+  </main>
+
+  <script>
+    const watch = document.getElementById('watch')
+    const scene = document.getElementById('scene')
+    const battleScene = document.getElementById('battleScene')
+    const statusScene = document.getElementById('statusScene')
+    const mode = document.getElementById('mode')
+    const message = document.getElementById('message')
+    const leftFlag = document.getElementById('leftFlag')
+    const rightFlag = document.getElementById('rightFlag')
+    const stageText = document.getElementById('stageText')
+    const petName = document.getElementById('petName')
+    const actions = document.getElementById('actions')
+    const poop = document.getElementById('poop')
+
+    const actionSets = {
+      menu: [
+        ['food', 'FOOD'],
+        ['train', 'TRAIN'],
+        ['battle', 'BATTLE'],
+        ['toilet', 'WC'],
+        ['med', 'MED'],
+        ['sleep', 'LIGHT'],
+        ['data', 'DATA'],
+        ['main', 'BACK']
+      ],
+      food: [
+        ['main', 'MEAT'],
+        ['main', 'VIT'],
+        ['menu', 'BACK']
+      ],
+      status: [
+        ['main', 'BACK'],
+        ['data', 'DATA'],
+        ['main', 'RESET']
+      ],
+      battle: [
+        ['menu', 'NEXT'],
+        ['main', 'BACK'],
+        ['status', 'STATUS']
+      ],
+      cold: [
+        ['main', 'RESUME'],
+        ['status', 'STATUS'],
+        ['menu', 'MENU']
+      ],
+      sleep: [
+        ['main', 'WAKE'],
+        ['status', 'STATUS'],
+        ['menu', 'MENU']
+      ]
+    }
+
+    function renderActions(name) {
+      const buttons = actionSets[name] || actionSets.menu
+      actions.innerHTML = buttons.map(([modeName, label]) => {
+        return `<button data-mode="${modeName}">${label}</button>`
+      }).join('')
+    }
+
+    function setScreen(name) {
+      const open = name !== 'main'
+      watch.classList.toggle('menu-open', open)
+      scene.classList.toggle('hidden', name === 'status' || name === 'battle')
+      battleScene.classList.toggle('hidden', name !== 'battle')
+      statusScene.classList.toggle('hidden', name !== 'status')
+      rightFlag.textContent = name === 'cold' ? 'COLD' : name === 'sleep' ? 'ZZZ' : ''
+      leftFlag.textContent = name === 'menu' ? 'CALL' : ''
+      stageText.textContent = name === 'status' ? 'STATUS' : 'III  EVO 23h'
+      petName.textContent = name === 'battle' ? 'QUEST' : 'GAZIMON'
+      mode.textContent = {
+        menu: 'COMMAND',
+        food: 'FOOD MENU',
+        status: 'STATUS',
+        battle: 'QUEST',
+        cold: 'COLD MODE',
+        sleep: 'LIGHT',
+        train: 'TRAIN',
+        toilet: 'WC',
+        med: 'MED',
+        data: 'DATA'
+      }[name] || 'COMMAND'
+      message.textContent = {
+        menu: 'CALL / Select care.',
+        food: 'OK / MEAT  VIT  BACK',
+        status: 'OK / Status opened.',
+        battle: 'OK / Q1-1 WON 64%',
+        cold: 'COLD / Growth paused.',
+        sleep: 'SLEEP / Lights out.',
+        train: 'OK / Training done.',
+        toilet: 'OK / Cleaned.',
+        med: 'OK / No problem.',
+        data: 'CM 1  EF 6  WR 100%'
+      }[name] || 'OK / Watching...'
+      poop.textContent = name === 'menu' ? 'oo' : ''
+      renderActions(name)
+    }
+
+    watch.addEventListener('click', (event) => {
+      if (event.target.tagName === 'BUTTON') return
+      if (!watch.classList.contains('menu-open')) setScreen('menu')
+    })
+
+    actions.addEventListener('click', (event) => {
+      if (event.target.tagName !== 'BUTTON') return
+      event.stopPropagation()
+      setScreen(event.target.dataset.mode)
+    })
+
+    setScreen('main')
+  </script>
+</body>
+</html>
