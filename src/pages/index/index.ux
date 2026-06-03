@@ -345,7 +345,7 @@ export default {
   },
   feedbackTextForAction(action) {
     if (action === 'meat') return this.state.message === '太饱了' ? '已经吃饱' : '喂肉成功'
-    if (action === 'vitamin') return this.state.message === '过量' ? '补剂过量' : '补剂成功'
+    if (action === 'vitamin') return this.state.message.indexOf('过量') >= 0 ? this.state.message : '补剂成功'
     if (action === 'toilet') return this.state.message === '清理完成' ? '清洁' : '已干净'
     if (action === 'med') return this.state.message === '恢复了' ? '恢复' : '无需用药'
     if (action === 'light') return this.state.asleep ? '关灯' : '开灯'

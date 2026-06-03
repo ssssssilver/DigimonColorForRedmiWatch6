@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.5 - 2026-06-03
+
+- Added first-pass Energy, Protein feed, Protein Overdose, training count, stage training, stage battle, injury count, and medicine dose fields with old-save migration defaults.
+- Updated training so success and failure both count, every four trainings grant Effort, and successful training restores Strength instead of consuming it.
+- Added battle Energy checks and consumption, plus Protein Overdose-influenced injury risk.
+- Expanded status/data output and smoke coverage for the new first-version gameplay rules.
+
 ## 0.3.4 - 2026-06-03
 
 - Added Humulos Ver.5 idle animation asset extraction for frame1/frame2 sprites and committed the generated dual-frame runtime assets.

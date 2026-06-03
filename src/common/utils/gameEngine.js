@@ -4,6 +4,8 @@ import { QUESTS } from '../data/quest.js'
 import { calculateHitrate } from './calculator.js'
 
 const MAX_HEARTS = 4
+const MAX_ENERGY = 4
+const MAX_PROTEIN_OVERDOSE = 7
 const PET_VERSIONS = ['Ver.5']
 export const CURRENT_SCHEMA_VERSION = 2
 const SCHEMA_VERSION = CURRENT_SCHEMA_VERSION
@@ -24,6 +26,7 @@ const LEGACY_MESSAGES = {
   'Too full.': '太饱了',
   'Protein up.': '补剂成功',
   'Overfed.': '过量',
+  'No energy.': '能量不足',
   'No power.': '力量不足',
   'Training MISS.': '训练失误',
   'Effort heart up.': '努力+',
@@ -94,17 +97,26 @@ export function newGame(now = Date.now(), version = 'Ver.5') {
     nextEvolutionAt: now + PET_TIMING.eggMs,
     hunger: 4,
     strength: 4,
+    energy: MAX_ENERGY,
     effort: 0,
+    trainingCount: 0,
+    stageTrainingCount: 0,
     weight: 5,
     careMistakes: 0,
     overfeeds: 0,
+    proteinFed: 0,
+    proteinOverdose: 0,
+    sleepDisturbances: 0,
     battles: 0,
+    stageBattles: 0,
     wins: 0,
     poop: 0,
     sick: false,
     sickStartedAt: 0,
     injured: false,
     injuredStartedAt: 0,
+    injuries: 0,
+    medicineNeeded: 0,
     asleep: false,
     cold: false,
     coldStartedAt: 0,
@@ -164,17 +176,26 @@ function newGameSkeleton(now) {
     nextEvolutionAt: now + PET_TIMING.eggMs,
     hunger: 4,
     strength: 4,
+    energy: MAX_ENERGY,
     effort: 0,
+    trainingCount: 0,
+    stageTrainingCount: 0,
     weight: 5,
     careMistakes: 0,
     overfeeds: 0,
+    proteinFed: 0,
+    proteinOverdose: 0,
+    sleepDisturbances: 0,
     battles: 0,
+    stageBattles: 0,
     wins: 0,
     poop: 0,
     sick: false,
     sickStartedAt: 0,
     injured: false,
     injuredStartedAt: 0,
+    injuries: 0,
+    medicineNeeded: 0,
     asleep: false,
     cold: false,
     coldStartedAt: 0,
@@ -262,6 +283,11 @@ function updateDeath(state, now) {
     state.message = '回归数据'
     return
   }
+  if (state.injuries >= 15) {
+    state.dead = true
+    state.message = '受伤过多'
+    return
+  }
   if (state.emptyStartedAt && now - state.emptyStartedAt >= PET_TIMING.deathGraceMs && state.sick) {
     state.dead = true
     state.message = '回归数据'
@@ -285,11 +311,21 @@ function updateEvolution(state, now) {
   state.petKey = nextKey
   state.hunger = MAX_HEARTS
   state.strength = MAX_HEARTS
+  state.energy = MAX_ENERGY
   state.poop = 0
+  state.careMistakes = 0
+  state.overfeeds = 0
+  state.proteinFed = 0
+  state.proteinOverdose = 0
+  state.sleepDisturbances = 0
+  state.stageTrainingCount = 0
+  state.stageBattles = 0
   state.sick = false
   state.sickStartedAt = 0
   state.injured = false
   state.injuredStartedAt = 0
+  state.injuries = 0
+  state.medicineNeeded = 0
   state.message = '进化'
   scheduleEvolution(state, now)
 }
@@ -309,6 +345,9 @@ export function applyAction(state, action, now = Date.now()) {
     return withPet(state)
   }
   if (state.asleep && !['light', 'data', 'med'].includes(action)) {
+    if (['meat', 'vitamin', 'train', 'trainOk', 'trainMiss', 'battle'].includes(action)) {
+      state.sleepDisturbances = (state.sleepDisturbances || 0) + 1
+    }
     state.message = '睡眠中'
     stampAction(state, action, now)
     return withPet(state)
@@ -347,34 +386,34 @@ function feedMeat(state) {
 }
 
 function feedVitamin(state, now) {
+  state.proteinFed = (state.proteinFed || 0) + 1
+  if (state.proteinFed % 4 === 0) {
+    state.energy = clamp((state.energy || 0) + 1, 0, MAX_ENERGY)
+    state.proteinOverdose = clamp((state.proteinOverdose || 0) + 1, 0, MAX_PROTEIN_OVERDOSE)
+  }
   if (state.strength < MAX_HEARTS) {
     state.strength += 1
     state.weight += 2
-    state.message = '补剂成功'
+    state.message = state.proteinFed % 4 === 0 ? '补剂 能量+' : '补剂成功'
   } else {
-    state.overfeeds += 1
     state.weight += 2
-    if (state.overfeeds % 4 === 0) markSick(state, now)
-    state.message = '过量'
+    if (state.proteinOverdose >= MAX_PROTEIN_OVERDOSE) markSick(state, now)
+    state.message = state.proteinFed % 4 === 0 ? '补剂过量 能量+' : '补剂过量'
   }
 }
 
 function train(state, success) {
-  if (state.strength <= 0) {
-    state.message = '力量不足'
-    return
-  }
-  if (!success) {
-    state.strength = clamp(state.strength - 1, 0, MAX_HEARTS)
-    state.weight = clamp(state.weight - 1, 1, 99)
-    state.message = '训练失误'
-    return
-  }
-  state.strength -= 1
-  state.effort = clamp(state.effort + 1, 0, 32)
+  state.trainingCount = (state.trainingCount || 0) + 1
+  state.stageTrainingCount = (state.stageTrainingCount || 0) + 1
+  if (state.trainingCount % 4 === 0) state.effort = clamp(state.effort + 1, 0, 32)
   state.weight = clamp(state.weight - 1, 1, 99)
-  if (state.effort % 8 === 0) {
-    state.message = '努力+'
+  if (!success) {
+    state.message = state.trainingCount % 4 === 0 ? '失误 努力+' : '训练失误'
+    return
+  }
+  state.strength = clamp(state.strength + 1, 0, MAX_HEARTS)
+  if (state.trainingCount % 4 === 0) {
+    state.message = '成功 努力+'
   } else {
     state.message = '训练成功'
   }
@@ -385,8 +424,8 @@ function battle(state, now) {
     state.message = '不能战斗'
     return
   }
-  if (state.strength <= 0) {
-    state.message = '力量不足'
+  if ((state.energy || 0) <= 0) {
+    state.message = '能量不足'
     return
   }
   const pet = findDigimon(state.petKey)
@@ -410,7 +449,8 @@ function battle(state, now) {
   const chance = clamp(Math.round(hit.hitrate), 5, 95)
   const roll = (now / 1000 + state.battles * 17) % 100
   state.battles += 1
-  state.strength = clamp(state.strength - 1, 0, MAX_HEARTS)
+  state.stageBattles = (state.stageBattles || 0) + 1
+  state.energy = clamp((state.energy || 0) - 1, 0, MAX_ENERGY)
   state.lastEnemyName = quest.enemy.name
   state.lastEnemySprite = quest.enemy.sprite
   state.lastBattleAt = now
@@ -421,7 +461,8 @@ function battle(state, now) {
     state.message = `Q${quest.areaNumber}-${quest.roundNumber} 胜 ${chance}%`
   } else {
     state.lastBattleWon = false
-    if (state.battles % 3 === 0) markInjured(state, now)
+    const injuryChance = clamp(10 + (state.proteinOverdose || 0) * 10, 10, 80)
+    if (((roll + 37) % 100) < injuryChance) markInjured(state, now)
     state.message = `Q${quest.areaNumber}-${quest.roundNumber} 败 ${chance}%`
   }
 }
@@ -462,7 +503,7 @@ export function getBattlePreview(state) {
     stage: pet.stage,
     traitedEgg: false
   })
-  const canBattle = !state.dead && !state.cold && !state.asleep && !state.sick && !state.injured && state.strength > 0 && ['III', 'IV', 'V', 'VI'].includes(pet.stage)
+  const canBattle = !state.dead && !state.cold && !state.asleep && !state.sick && !state.injured && (state.energy || 0) > 0 && ['III', 'IV', 'V', 'VI'].includes(pet.stage)
   return {
     canBattle,
     message: canBattle ? '点开始' : battleBlockedMessage(state, pet),
@@ -478,7 +519,7 @@ function battleBlockedMessage(state, pet) {
   if (state.cold) return '冷冻中'
   if (state.asleep) return '睡眠中'
   if (state.sick || state.injured) return '不能战斗'
-  if (state.strength <= 0) return '力量不足'
+  if ((state.energy || 0) <= 0) return '能量不足'
   if (!['III', 'IV', 'V', 'VI'].includes(pet.stage)) return '还太小'
   return '不能战斗'
 }
@@ -519,8 +560,14 @@ function medicine(state) {
   }
   state.sick = false
   state.sickStartedAt = 0
+  if (state.medicineNeeded > 1) {
+    state.medicineNeeded -= 1
+    state.message = '继续治疗'
+    return
+  }
   state.injured = false
   state.injuredStartedAt = 0
+  state.medicineNeeded = 0
   state.message = '恢复了'
 }
 
@@ -553,7 +600,7 @@ function toggleCold(state, now) {
 
 function makeDataMessage(state) {
   const winRate = state.battles > 0 ? Math.round((state.wins * 100) / state.battles) : 0
-  return `失误 ${state.careMistakes} 努力 ${state.effort} 胜率 ${winRate}%`
+  return `能量 ${state.energy}/${MAX_ENERGY} 过量 ${state.proteinOverdose} 胜率 ${winRate}%`
 }
 
 export function getDisplayModel(state, now = Date.now()) {
@@ -627,10 +674,10 @@ function statusRows(state, now) {
     `名字 ${state.dead ? '死亡' : pet.name}`,
     `${normalizeVersion(state.version)} 年龄 ${ageHours}时 体重 ${state.weight}g`,
     `饥饿 ${state.hunger}/4 力量 ${state.strength}/4`,
-    `努力 ${state.effort} 失误 ${state.careMistakes}`,
-    `战斗 ${state.wins}/${state.battles} 胜率 ${winRate}%`,
+    `努力 ${state.effort} 训练 ${state.stageTrainingCount || 0}`,
+    `战斗 ${state.wins}/${state.battles} 能量 ${state.energy || 0}/${MAX_ENERGY}`,
     `Q${quest.areaNumber || '-'}-${quest.roundNumber || '-'} ${quest.enemy ? quest.enemy.name : '无'}`,
-    `便便 ${state.poop} 过量 ${state.overfeeds}`,
+    `失误 ${state.careMistakes} 过量 ${state.proteinOverdose || 0} 受伤 ${state.injuries || 0}`,
     `进化 ${evoText}`
   ]
 }
@@ -647,6 +694,8 @@ function markInjured(state, now) {
     state.injuredStartedAt = now
   }
   state.injured = true
+  state.injuries = (state.injuries || 0) + 1
+  state.medicineNeeded = Math.max(state.medicineNeeded || 0, 1)
 }
 
 function needsLightsOut(state, now) {
