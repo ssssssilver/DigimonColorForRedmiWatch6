@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 - 2026-06-03
+
+- Switched the default Vela debug target to the square REDMI Watch simulator.
+- Aligned the app design width to the 432 px REDMI Watch 6 canvas.
+- Added explicit square and round Vela debug scripts for simulator switching.
+
 ## 0.2.0 - 2026-06-03
 
 - Reworked the watch home screen around a simplified pet-first LCD idle view.

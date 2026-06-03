@@ -4,7 +4,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { createRequire } from 'node:module'
 
-const targetVvd = process.argv[2] || 'Vela_Watch_Vpet'
+const targetVvd = process.argv[2] || process.env.VELA_VVD || 'Vela_Watch_Vpet_Square'
 const require = createRequire(import.meta.url)
 const promptsPath = require.resolve('@inquirer/prompts')
 
