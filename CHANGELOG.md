@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.3 - 2026-06-03
+
+- Replaced one-character Chinese UI labels with clearer action labels across the watch command rails and submenus.
+- Expanded feeding feedback copy so runtime messages read as complete Chinese phrases instead of abbreviated symbols.
+
 ## 0.3.2 - 2026-06-03
 
 - Removed the idle LCD ground line after simulator review because it read as an unnecessary center divider.

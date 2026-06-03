@@ -20,9 +20,9 @@ const LEGACY_MESSAGES = {
   'Ver.5 only.': '固定 Ver.5',
   'Cold paused.': '冷冻中',
   'Sleeping.': '睡眠中',
-  'Meat served.': '肉+',
+  'Meat served.': '喂肉成功',
   'Too full.': '太饱了',
-  'Protein up.': '维+',
+  'Protein up.': '补剂成功',
   'Overfed.': '过量',
   'No power.': '力量不足',
   'Training MISS.': '训练失误',
@@ -333,7 +333,7 @@ function feedMeat(state) {
   if (state.hunger < MAX_HEARTS) {
     state.hunger += 1
     state.weight += 1
-    state.message = '肉+'
+    state.message = '喂肉成功'
   } else {
     state.overfeeds += 1
     state.weight += 2
@@ -345,7 +345,7 @@ function feedVitamin(state, now) {
   if (state.strength < MAX_HEARTS) {
     state.strength += 1
     state.weight += 2
-    state.message = '维+'
+    state.message = '补剂成功'
   } else {
     state.overfeeds += 1
     state.weight += 2

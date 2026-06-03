@@ -2,16 +2,16 @@
   <div class="vpet-page">
     <div class="{{lcdClass}}">
       <div class="icon-rail top-rail" if="{{!model.showGrave}}">
-        <input class="{{statusIconClass}}" type="button" value="状" onclick="runAction('status')" />
-        <input class="{{foodIconClass}}" type="button" value="食" onclick="runAction('feed')" />
-        <input class="{{trainIconClass}}" type="button" value="训" onclick="runAction('trainStart')" />
-        <input class="{{battleIconClass}}" type="button" value="战" onclick="runAction('battlePreview')" />
+        <input class="{{statusIconClass}}" type="button" value="状态" onclick="runAction('status')" />
+        <input class="{{foodIconClass}}" type="button" value="喂食" onclick="runAction('feed')" />
+        <input class="{{trainIconClass}}" type="button" value="训练" onclick="runAction('trainStart')" />
+        <input class="{{battleIconClass}}" type="button" value="对战" onclick="runAction('battlePreview')" />
       </div>
 
       <div class="battle-scene" if="{{model.showBattle && !showStatus && !showTrain && !showBattlePreview}}">
         <image class="battle-sprite" src="{{model.sprite}}"></image>
         <div class="battle-center">
-          <text class="battle-vs">对</text>
+          <text class="battle-vs">对战</text>
           <text class="battle-result">{{model.battleResultText}}</text>
         </div>
         <image class="battle-sprite" src="{{model.enemySprite}}"></image>
@@ -47,58 +47,58 @@
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'main' && !model.showGrave}}">
-        <input class="{{wcIconClass}}" type="button" value="厕" onclick="runAction('toilet')" />
-        <input class="{{medIconClass}}" type="button" value="药" onclick="runAction('med')" />
-        <input class="{{lightIconClass}}" type="button" value="灯" onclick="runAction('light')" />
-        <input class="{{coldIconClass}}" type="button" value="冷" onclick="runAction('cold')" />
-        <input class="{{dataIconClass}}" type="button" value="数" onclick="runAction('data')" />
+        <input class="{{wcIconClass}}" type="button" value="清洁" onclick="runAction('toilet')" />
+        <input class="{{medIconClass}}" type="button" value="治疗" onclick="runAction('med')" />
+        <input class="{{lightIconClass}}" type="button" value="灯光" onclick="runAction('light')" />
+        <input class="{{coldIconClass}}" type="button" value="冷冻" onclick="runAction('cold')" />
+        <input class="{{dataIconClass}}" type="button" value="资料" onclick="runAction('data')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'feed'}}">
-        <input class="rail-icon sub-icon" type="button" value="肉" onclick="runAction('meat')" />
-        <input class="rail-icon sub-icon" type="button" value="维" onclick="runAction('vitamin')" />
-        <input class="rail-icon sub-icon" type="button" value="返" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon" type="button" value="肉食" onclick="runAction('meat')" />
+        <input class="rail-icon sub-icon" type="button" value="补剂" onclick="runAction('vitamin')" />
+        <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'status'}}">
-        <input class="rail-icon sub-icon" type="button" value="返" onclick="runAction('back')" />
-        <input class="rail-icon sub-icon" type="button" value="数" onclick="runAction('data')" />
+        <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon" type="button" value="资料" onclick="runAction('data')" />
         <input class="rail-icon sub-icon warn-icon" type="button" value="重置" onclick="runAction('resetAsk')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'coldMenu'}}">
         <input class="rail-icon sub-icon icon-active" type="button" value="恢复" onclick="runAction('cold')" />
-        <input class="rail-icon sub-icon" type="button" value="状" onclick="runAction('status')" />
-        <input class="rail-icon sub-icon" type="button" value="返" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon" type="button" value="状态" onclick="runAction('status')" />
+        <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'sleepMenu'}}">
         <input class="rail-icon sub-icon icon-active" type="button" value="唤醒" onclick="runAction('light')" />
-        <input class="rail-icon sub-icon" type="button" value="状" onclick="runAction('status')" />
-        <input class="rail-icon sub-icon" type="button" value="返" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon" type="button" value="状态" onclick="runAction('status')" />
+        <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'resetConfirm'}}">
         <input class="rail-icon sub-icon warn-icon" type="button" value="新蛋" onclick="runAction('reset')" />
-        <input class="rail-icon sub-icon" type="button" value="返" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'train'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="停" onclick="runAction('trainStop')" />
-        <input class="rail-icon sub-icon" type="button" value="返" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon icon-active" type="button" value="停止" onclick="runAction('trainStop')" />
+        <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'trainResult'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="好" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon icon-active" type="button" value="确认" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'battlePreview'}}">
         <input class="rail-icon sub-icon icon-active" type="button" value="开始" onclick="runAction('battleStart')" />
-        <input class="rail-icon sub-icon" type="button" value="返" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{screenMode === 'battleResult'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="好" onclick="runAction('back')" />
+        <input class="rail-icon sub-icon icon-active" type="button" value="确认" onclick="runAction('back')" />
       </div>
 
       <div class="icon-rail bottom-rail" if="{{model.showGrave && screenMode !== 'resetConfirm'}}">
@@ -342,8 +342,8 @@ export default {
     this.lastSavedPet = this.state.petKey
   },
   feedbackTextForAction(action) {
-    if (action === 'meat') return this.state.message === '太饱了' ? '已满' : '肉+'
-    if (action === 'vitamin') return this.state.message === '过量' ? '过量' : '维+'
+    if (action === 'meat') return this.state.message === '太饱了' ? '已经吃饱' : '喂肉成功'
+    if (action === 'vitamin') return this.state.message === '过量' ? '补剂过量' : '补剂成功'
     if (action === 'toilet') return this.state.message === '清理完成' ? '清洁' : '已干净'
     if (action === 'med') return this.state.message === '恢复了' ? '恢复' : '无需用药'
     if (action === 'light') return this.state.asleep ? '关灯' : '开灯'
