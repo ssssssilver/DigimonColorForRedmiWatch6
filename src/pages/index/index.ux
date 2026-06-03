@@ -75,8 +75,8 @@
       </div>
     </div>
 
-    <div class="tap-strip" if="{{!showCommands && !model.showGrave}}">
-      <text class="tap-text">TAP</text>
+    <div class="tap-actions" if="{{!showCommands && !model.showGrave}}">
+      <input class="menu-open-btn" type="button" value="MENU" onclick="runAction('menu')" />
     </div>
 
     <div class="message-box" if="{{showCommands}}">
@@ -87,8 +87,51 @@
       <text class="mode-label">{{modeLabel}}</text>
     </div>
 
-    <div class="action-grid" if="{{showCommands}}">
-      <input for="{{actions}}" tid="id" class="action-btn" type="button" value="{{$item.label}}" onclick="runAction($item.id)" />
+    <div class="action-grid" if="{{screenMode === 'menu'}}">
+      <input class="action-btn" type="button" value="FOOD" onclick="runAction('feed')" />
+      <input class="action-btn" type="button" value="TRAIN" onclick="runAction('trainStart')" />
+      <input class="action-btn" type="button" value="BATTLE" onclick="runAction('battlePreview')" />
+      <input class="action-btn" type="button" value="WC" onclick="runAction('toilet')" />
+      <input class="action-btn" type="button" value="MED" onclick="runAction('med')" />
+      <input class="action-btn" type="button" value="LIGHT" onclick="runAction('light')" />
+      <input class="action-btn" type="button" value="COLD" onclick="runAction('cold')" />
+      <input class="action-btn" type="button" value="DATA" onclick="runAction('data')" />
+      <input class="action-btn" type="button" value="BACK" onclick="runAction('back')" />
+    </div>
+
+    <div class="action-grid compact-grid" if="{{screenMode === 'feed'}}">
+      <input class="compact-action-btn" type="button" value="MEAT" onclick="runAction('meat')" />
+      <input class="compact-action-btn" type="button" value="VIT" onclick="runAction('vitamin')" />
+      <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
+    </div>
+
+    <div class="action-grid compact-grid" if="{{screenMode === 'status'}}">
+      <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
+      <input class="compact-action-btn" type="button" value="DATA" onclick="runAction('data')" />
+      <input class="compact-action-btn" type="button" value="RESET" onclick="runAction('resetAsk')" />
+    </div>
+
+    <div class="action-grid compact-grid" if="{{screenMode === 'resetConfirm'}}">
+      <input class="compact-action-btn danger-btn" type="button" value="NEW EGG" onclick="runAction('reset')" />
+      <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
+    </div>
+
+    <div class="action-grid compact-grid" if="{{screenMode === 'train'}}">
+      <input class="compact-action-btn" type="button" value="STOP" onclick="runAction('trainStop')" />
+      <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
+    </div>
+
+    <div class="action-grid compact-grid" if="{{screenMode === 'trainResult'}}">
+      <input class="compact-action-btn" type="button" value="OK" onclick="runAction('back')" />
+    </div>
+
+    <div class="action-grid compact-grid" if="{{screenMode === 'battlePreview'}}">
+      <input class="compact-action-btn" type="button" value="START" onclick="runAction('battleStart')" />
+      <input class="compact-action-btn" type="button" value="BACK" onclick="runAction('back')" />
+    </div>
+
+    <div class="action-grid compact-grid" if="{{screenMode === 'battleResult'}}">
+      <input class="compact-action-btn" type="button" value="OK" onclick="runAction('back')" />
     </div>
 
     <div class="dead-actions" if="{{showDeadAction}}">
@@ -817,17 +860,23 @@ export default {
   text-align: center;
 }
 
-.tap-strip {
+.tap-actions {
   width: 100%;
-  height: 26px;
+  height: 58px;
   margin-top: 8px;
   align-items: center;
   justify-content: center;
 }
 
-.tap-text {
-  color: #28583b;
-  font-size: 13px;
+.menu-open-btn {
+  width: 180px;
+  height: 48px;
+  border-width: 3px;
+  border-color: #2bbd61;
+  border-radius: 4px;
+  background-color: #092113;
+  color: #b8ffca;
+  font-size: 18px;
 }
 
 .mode-strip {
@@ -851,6 +900,10 @@ export default {
   margin-top: 2px;
 }
 
+.compact-grid {
+  justify-content: center;
+}
+
 .action-btn {
   width: 24%;
   height: 36px;
@@ -861,6 +914,26 @@ export default {
   background-color: #092113;
   color: #b8ffca;
   font-size: 12px;
+}
+
+.compact-action-btn {
+  width: 30%;
+  height: 36px;
+  margin-bottom: 5px;
+  margin-left: 8px;
+  margin-right: 8px;
+  border-width: 2px;
+  border-color: #2bbd61;
+  border-radius: 4px;
+  background-color: #092113;
+  color: #b8ffca;
+  font-size: 12px;
+}
+
+.danger-btn {
+  border-color: #ffd95f;
+  background-color: #2f2a06;
+  color: #fff6a2;
 }
 
 .dead-actions {

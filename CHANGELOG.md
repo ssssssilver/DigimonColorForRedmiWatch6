@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1 - 2026-06-03
+
+- Stabilized simulator controls by replacing dynamic command-list buttons with explicit Vela input controls.
+- Added a dedicated MENU button for simulator and watch interaction.
+- Verified round Vela emulator gameplay flow through MENU and FOOD submenu.
+
 ## 0.1.0 - 2026-06-03
 
 - Added the first playable Xiaomi Vela quick app implementation for REDMI Watch 6.
