@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.4 - 2026-06-03
+
+- Aligned the Vela design width with the updated quick-app design document.
+- Made storage schema fallback use the current game schema instead of the old v1 default.
+- Added immediate save-on-hide and save-on-destroy handling for the main pet screen.
+
 ## 0.2.3 - 2026-06-03
 
 - Removed unregistered reference pages and their page-only helpers/styles from the runtime source tree.

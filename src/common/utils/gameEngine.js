@@ -5,7 +5,8 @@ import { calculateHitrate } from './calculator.js'
 
 const MAX_HEARTS = 4
 const PET_VERSIONS = ['Ver.5']
-const SCHEMA_VERSION = 2
+export const CURRENT_SCHEMA_VERSION = 2
+const SCHEMA_VERSION = CURRENT_SCHEMA_VERSION
 const MAX_OFFLINE_MS = 7 * 24 * 60 * 60 * 1000
 
 function clamp(value, min, max) {

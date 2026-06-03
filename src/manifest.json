@@ -1,8 +1,8 @@
 {
   "package": "com.learning.multivpet.dmcwatch",
   "name": "DMC VPET",
-  "versionName": "0.2.3",
-  "versionCode": 6,
+  "versionName": "0.2.4",
+  "versionCode": 7,
   "minPlatformVersion": 1200,
   "icon": "/common/logo.png",
   "simulationVersion": "default",
@@ -25,7 +25,7 @@
   ],
   "config": {
     "logLevel": "log",
-    "designWidth": 432
+    "designWidth": 480
   },
   "router": {
     "entry": "pages/index",

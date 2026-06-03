@@ -211,9 +211,11 @@ export default {
     this.startTicker()
   },
   onHide() {
+    this.persistNow()
     this.stopTicker()
   },
   onDestroy() {
+    this.persistNow()
     this.stopTicker()
   },
   startTicker() {
@@ -228,6 +230,14 @@ export default {
     clearInterval(this.timerId)
     this.timerId = 0
     this.stopTrainTicker()
+  },
+  persistNow() {
+    if (!this.state.petKey) return
+    this.model = getDisplayModel(this.state)
+    this.state = this.model.state
+    saveGame(this.state)
+    this.lastSavedAt = Date.now()
+    this.lastSavedPet = this.state.petKey
   },
   refresh() {
     if (!this.state.petKey) return

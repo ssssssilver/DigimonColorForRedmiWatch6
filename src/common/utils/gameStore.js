@@ -1,5 +1,5 @@
 import storage from '@system.storage'
-import { hydrateState, newGame } from './gameEngine.js'
+import { CURRENT_SCHEMA_VERSION, hydrateState, newGame } from './gameEngine.js'
 
 const KEY = 'dmc-vpet-state-v2'
 
@@ -27,7 +27,7 @@ export function loadGame(success) {
 export function saveGame(state) {
   const copy = Object.assign({}, state)
   delete copy.pet
-  copy.schemaVersion = copy.schemaVersion || 1
+  copy.schemaVersion = copy.schemaVersion || CURRENT_SCHEMA_VERSION
   copy.updatedAt = Date.now()
   storage.set({
     key: KEY,
