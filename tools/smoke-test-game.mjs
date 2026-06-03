@@ -1,4 +1,4 @@
-import { applyAction, getDisplayModel, newGame } from '../src/common/utils/gameEngine.js'
+import { applyAction, getDisplayModel, hydrateState, newGame } from '../src/common/utils/gameEngine.js'
 
 const failures = []
 
@@ -16,6 +16,24 @@ function hatch(version) {
 }
 
 hatch('Ver.5')
+
+{
+  const state = newGame(1200000, 'Ver.5')
+  assert(state.schemaVersion === 2, 'new game should use schema v2')
+}
+
+{
+  const start = 1300000
+  const raw = newGame(start, 'Ver.5')
+  raw.schemaVersion = 1
+  raw.cold = true
+  raw.lastAction = 'cold'
+  raw.lastActionAt = start + 1000
+  delete raw.coldStartedAt
+  const state = hydrateState(raw, start + 2000)
+  assert(state.schemaVersion === 2, 'old save should migrate to schema v2')
+  assert(state.coldStartedAt === start + 1000, 'old cold save should recover coldStartedAt')
+}
 
 {
   const state = applyAction(newGame(1000000, 'Ver.1'), 'version', 1001000)
@@ -52,6 +70,24 @@ hatch('Ver.5')
   assert(state.cold, 'cold state should remain active')
   assert(state.strength === strength, 'cold mode should block training')
   assert(state.message === 'Cold paused.', 'cold blocked action should explain pause')
+}
+
+{
+  const start = 3500000
+  let state = newGame(start, 'Ver.5')
+  state = getDisplayModel(state, start + 11000).state
+  const coldAt = start + 20000
+  state = applyAction(state, 'cold', coldAt)
+  const petKey = state.petKey
+  const bornAt = state.bornAt
+  const nextEvolutionAt = state.nextEvolutionAt
+  state = getDisplayModel(state, coldAt + 24 * 60 * 60 * 1000).state
+  assert(state.petKey === petKey, 'cold mode should pause evolution while active')
+  state = applyAction(state, 'cold', coldAt + 24 * 60 * 60 * 1000)
+  assert(state.bornAt > bornAt, 'cold resume should shift bornAt forward to pause age')
+  assert(state.nextEvolutionAt > nextEvolutionAt, 'cold resume should shift evolution deadline forward')
+  state = getDisplayModel(state, coldAt + 24 * 60 * 60 * 1000 + 1000).state
+  assert(state.petKey === petKey, 'cold resume should not immediately evolve')
 }
 
 {

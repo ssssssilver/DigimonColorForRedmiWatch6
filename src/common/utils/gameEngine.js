@@ -5,7 +5,7 @@ import { calculateHitrate } from './calculator.js'
 
 const MAX_HEARTS = 4
 const PET_VERSIONS = ['Ver.5']
-const SCHEMA_VERSION = 1
+const SCHEMA_VERSION = 2
 const MAX_OFFLINE_MS = 7 * 24 * 60 * 60 * 1000
 
 function clamp(value, min, max) {
@@ -59,6 +59,7 @@ export function newGame(now = Date.now(), version = 'Ver.5') {
     injuredStartedAt: 0,
     asleep: false,
     cold: false,
+    coldStartedAt: 0,
     dead: false,
     callActive: false,
     callStartedAt: 0,
@@ -84,6 +85,9 @@ export function hydrateState(raw, now = Date.now()) {
   const state = Object.assign(newGameSkeleton(now), raw || {})
   state.schemaVersion = SCHEMA_VERSION
   state.version = normalizeVersion(state.version)
+  if (state.cold && !state.coldStartedAt) {
+    state.coldStartedAt = state.lastAction === 'cold' ? state.lastActionAt || state.lastTickAt : state.lastTickAt
+  }
   if (state.lastTickAt > now) {
     state.lastTickAt = now
     state.lastHungerAt = now
@@ -124,6 +128,7 @@ function newGameSkeleton(now) {
     injuredStartedAt: 0,
     asleep: false,
     cold: false,
+    coldStartedAt: 0,
     dead: false,
     callActive: false,
     callStartedAt: 0,
@@ -477,7 +482,18 @@ function toggleSleep(state) {
 
 function toggleCold(state, now) {
   state.cold = !state.cold
-  if (!state.cold) {
+  if (state.cold) {
+    state.coldStartedAt = now
+    state.callActive = false
+    state.callStartedAt = 0
+    state.emptyStartedAt = 0
+  } else {
+    const pausedMs = state.coldStartedAt ? Math.max(0, now - state.coldStartedAt) : 0
+    if (pausedMs > 0) {
+      state.bornAt += pausedMs
+      if (state.nextEvolutionAt) state.nextEvolutionAt += pausedMs
+    }
+    state.coldStartedAt = 0
     state.lastHungerAt = now
     state.lastStrengthAt = now
     state.lastPoopAt = now

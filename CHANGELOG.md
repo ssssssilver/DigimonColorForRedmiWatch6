@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2 - 2026-06-03
+
+- Fixed Cold Mode to pause age and evolution deadlines instead of only blocking hunger, strength, and poop ticks.
+- Added `coldStartedAt` state migration and bumped the internal save schema to v2.
+- Expanded smoke tests to cover Cold Mode evolution pause and old cold-save migration.
+
 ## 0.2.1 - 2026-06-03
 
 - Switched the default Vela debug target to the square REDMI Watch simulator.
