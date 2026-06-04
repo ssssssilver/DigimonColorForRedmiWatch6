@@ -7,7 +7,7 @@ const MAX_HEARTS = 4
 const MAX_ENERGY = 4
 const MAX_PROTEIN_OVERDOSE = 7
 const PET_VERSIONS = ['Ver.5']
-export const CURRENT_SCHEMA_VERSION = 2
+export const CURRENT_SCHEMA_VERSION = 3
 const SCHEMA_VERSION = CURRENT_SCHEMA_VERSION
 const MAX_OFFLINE_MS = 7 * 24 * 60 * 60 * 1000
 const LEGACY_MESSAGES = {
@@ -118,11 +118,13 @@ export function newGame(now = Date.now(), version = 'Ver.5') {
     injuries: 0,
     medicineNeeded: 0,
     asleep: false,
+    lightsOff: false,
     cold: false,
     coldStartedAt: 0,
     dead: false,
     callActive: false,
     callStartedAt: 0,
+    lastCallPressedAt: 0,
     emptyStartedAt: 0,
     questArea: 0,
     questRound: 0,
@@ -146,6 +148,7 @@ export function hydrateState(raw, now = Date.now()) {
   state.schemaVersion = SCHEMA_VERSION
   state.version = normalizeVersion(state.version)
   state.message = localizeLegacyMessage(state.message)
+  if (state.asleep && !state.lightsOff) state.lightsOff = true
   if (state.cold && !state.coldStartedAt) {
     state.coldStartedAt = state.lastAction === 'cold' ? state.lastActionAt || state.lastTickAt : state.lastTickAt
   }
@@ -197,11 +200,13 @@ function newGameSkeleton(now) {
     injuries: 0,
     medicineNeeded: 0,
     asleep: false,
+    lightsOff: false,
     cold: false,
     coldStartedAt: 0,
     dead: false,
     callActive: false,
     callStartedAt: 0,
+    lastCallPressedAt: 0,
     emptyStartedAt: 0,
     questArea: 0,
     questRound: 0,
@@ -339,12 +344,12 @@ export function applyAction(state, action, now = Date.now()) {
     return withPet(state)
   }
   if (state.dead) return withPet(state)
-  if (state.cold && !['cold', 'data'].includes(action)) {
+  if (state.cold && !['cold', 'data', 'call'].includes(action)) {
     state.message = '冷冻中'
     stampAction(state, action, now)
     return withPet(state)
   }
-  if (state.asleep && !['light', 'data', 'med'].includes(action)) {
+  if (state.asleep && !['light', 'cold', 'backup', 'data', 'med', 'call'].includes(action)) {
     if (['meat', 'vitamin', 'train', 'trainOk', 'trainMiss', 'battle'].includes(action)) {
       state.sleepDisturbances = (state.sleepDisturbances || 0) + 1
     }
@@ -361,6 +366,8 @@ export function applyAction(state, action, now = Date.now()) {
   if (action === 'med') medicine(state)
   if (action === 'light') toggleSleep(state)
   if (action === 'cold') toggleCold(state, now)
+  if (action === 'backup') state.message = '备份未开放'
+  if (action === 'call') pressCall(state, now)
   if (action === 'data') state.message = makeDataMessage(state)
   stampAction(state, action, now)
   updateCallAndMistake(state, now)
@@ -588,7 +595,13 @@ function medicine(state) {
 
 function toggleSleep(state) {
   state.asleep = !state.asleep
+  state.lightsOff = state.asleep
   state.message = state.asleep ? '关灯' : '开灯'
+}
+
+function pressCall(state, now) {
+  state.lastCallPressedAt = now
+  state.message = state.callActive ? '呼唤' : '无呼叫'
 }
 
 function toggleCold(state, now) {
@@ -648,7 +661,7 @@ export function getDisplayModel(state, now = Date.now()) {
     idleSprite2: current.dead ? '' : idleSpritePath(pet, 2),
     callText: current.callActive ? '呼叫' : '',
     coldText: current.cold ? '冷冻' : '',
-    sleepText: current.asleep ? 'ZZZ' : '',
+    sleepText: current.asleep ? 'ZZZ' : current.lightsOff ? '关灯' : '',
     questText: quest.enemy ? `Q${quest.areaNumber}-${quest.roundNumber}` : 'Q-',
     versionText: normalizeVersion(current.version),
     statusRows: statusRows(current, now)
@@ -714,7 +727,7 @@ function markInjured(state, now) {
 }
 
 function needsLightsOut(state, now) {
-  return isSleepTime(now) && !state.asleep && !state.dead
+  return isSleepTime(now) && !state.lightsOff && !state.dead
 }
 
 function isSleepTime(now) {

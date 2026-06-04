@@ -72,11 +72,12 @@
 
         <div class="module-scene" if="{{showSleepMenu}}">
           <text class="module-icon">Z</text>
-          <text class="module-title">睡眠</text>
+          <text class="module-title">睡觉</text>
           <text class="module-feedback">{{model.message}}</text>
           <div class="module-actions">
-            <input class="module-action action-primary" type="button" value="唤醒" onclick="runAction('light')" />
-            <input class="module-action" type="button" value="状态" onclick="runAction('status')" />
+            <input class="module-action action-primary" type="button" value="灯光" onclick="runAction('light')" />
+            <input class="module-action" type="button" value="冷冻" onclick="runAction('cold')" />
+            <input class="module-action" type="button" value="备份" onclick="runAction('backup')" />
             <input class="module-action" type="button" value="返回" onclick="runAction('back')" />
           </div>
         </div>
@@ -113,9 +114,9 @@
       <div class="bottom-slot">
         <div class="icon-rail bottom-rail" if="{{!model.showGrave && screenMode !== 'resetConfirm'}}">
           <input class="{{wcIconClass}}" type="button" value="o清理" onclick="runAction('toilet')" />
+          <input class="{{sleepIconClass}}" type="button" value="Z睡觉" onclick="runAction('sleepMenu')" />
           <input class="{{medIconClass}}" type="button" value="+治疗" onclick="runAction('med')" />
-          <input class="{{lightIconClass}}" type="button" value="日灯光" onclick="runAction('light')" />
-          <input class="{{coldIconClass}}" type="button" value="*冷冻" onclick="runAction('cold')" />
+          <input class="{{callIconClass}}" type="button" value="!呼唤" onclick="runAction('call')" />
         </div>
 
         <div class="icon-rail bottom-rail grave-rail" if="{{model.showGrave && screenMode !== 'resetConfirm'}}">
@@ -195,8 +196,8 @@ export default {
     battleIconClass: 'rail-icon',
     wcIconClass: 'rail-icon',
     medIconClass: 'rail-icon',
-    lightIconClass: 'rail-icon',
-    coldIconClass: 'rail-icon',
+    sleepIconClass: 'rail-icon',
+    callIconClass: 'rail-icon',
     menuFoodClass: 'action-btn',
     menuWcClass: 'action-btn',
     menuMedClass: 'action-btn',
@@ -299,6 +300,13 @@ export default {
       this.syncMode()
       return
     }
+    if (action === 'sleepMenu') {
+      this.showStageFeedback('睡觉', 900)
+      this.screenMode = 'sleepMenu'
+      this.menuOpenedAt = Date.now()
+      this.syncMode()
+      return
+    }
     if (action === 'menu') {
       this.openCommands()
       return
@@ -382,6 +390,17 @@ export default {
       this.syncMode()
       return
     }
+    if (action === 'backup') {
+      this.screenMode = 'sleepMenu'
+      this.menuOpenedAt = Date.now()
+      this.syncMode()
+      return
+    }
+    if (action === 'call') {
+      this.screenMode = 'main'
+      this.syncMode()
+      return
+    }
     if (action === 'cold' && this.state.cold) {
       this.screenMode = 'coldMenu'
     } else if (action === 'light' && this.state.asleep) {
@@ -405,6 +424,8 @@ export default {
     if (action === 'med') return this.state.message === '恢复了' ? '恢复' : '无需用药'
     if (action === 'light') return this.state.asleep ? '关灯' : '开灯'
     if (action === 'cold') return this.state.cold ? '冷冻' : '继续'
+    if (action === 'backup') return '备份未开放'
+    if (action === 'call') return this.state.message
     if (action === 'data') return this.state.message
     if (action === 'reset') return '新蛋'
     return this.state.message || ''
@@ -485,8 +506,8 @@ export default {
     this.battleIconClass = this.screenMode === 'battlePreview' || this.screenMode === 'battleResult' || this.model.showBattle ? active : base
     this.wcIconClass = this.state.poop > 0 ? hot : base
     this.medIconClass = this.state.sick || this.state.injured ? hot : base
-    this.lightIconClass = this.state.asleep ? active : base
-    this.coldIconClass = this.state.cold ? active : base
+    this.sleepIconClass = this.screenMode === 'sleepMenu' || this.state.asleep || this.state.cold ? active : base
+    this.callIconClass = this.state.callActive ? hot : base
   },
   startTrainTicker() {
     this.stopTrainTicker()
@@ -743,7 +764,7 @@ export default {
 }
 
 .module-action {
-  width: 74px;
+  width: 62px;
   height: 34px;
   margin-left: 3px;
   margin-right: 3px;

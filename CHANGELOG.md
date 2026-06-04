@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1 - 2026-06-04
+
+- Updated the formal v5 home rail to the manual-aligned eight entries: Status, Food, Training, Battles, Clean Waste, Sleep, Heal, and Call.
+- Moved Lights, Cold Mode, and Backup under the Sleep central module instead of keeping Light and Cold as home entries.
+- Added a Call feedback action that records the press and highlights active calls without directly clearing care state.
+- Added schema defaults and smoke coverage for `lightsOff`, Call feedback, and the Backup placeholder.
+
 ## 0.4.0 - 2026-06-04
 
 - Started the formal v5 UI development line from the updated quick-app, 8-module, and battle UI documents.

@@ -19,7 +19,8 @@ hatch('Ver.5')
 
 {
   const state = newGame(1200000, 'Ver.5')
-  assert(state.schemaVersion === 2, 'new game should use schema v2')
+  assert(state.schemaVersion === 3, 'new game should use schema v3')
+  assert(state.lightsOff === false, 'new game should start with lights on')
 }
 
 {
@@ -45,7 +46,7 @@ hatch('Ver.5')
   raw.message = 'EVOLUTION!'
   delete raw.coldStartedAt
   const state = hydrateState(raw, start + 2000)
-  assert(state.schemaVersion === 2, 'old save should migrate to schema v2')
+  assert(state.schemaVersion === 3, 'old save should migrate to schema v3')
   assert(state.coldStartedAt === start + 1000, 'old cold save should recover coldStartedAt')
   assert(state.message === '进化', 'old save should localize legacy English messages')
 }
@@ -158,8 +159,29 @@ hatch('Ver.5')
   const hunger = state.hunger
   state = applyAction(state, 'meat', start + 2000)
   assert(state.asleep, 'light should toggle sleep on')
+  assert(state.lightsOff, 'light should mark lights off for sleep rules')
   assert(state.hunger === hunger, 'sleep should block feeding')
   assert(state.message === '睡眠中', 'sleep blocked action should explain sleep')
+}
+
+{
+  const start = 4100000
+  let state = newGame(start, 'Ver.5')
+  state.hunger = 0
+  state = getDisplayModel(state, start + 1000).state
+  assert(state.callActive, 'empty hunger should trigger call')
+  state = applyAction(state, 'call', start + 2000)
+  assert(state.callActive, 'call action should not clear care state')
+  assert(state.lastCallPressedAt === start + 2000, 'call action should record feedback time')
+  assert(state.message === '呼唤', 'call action should show feedback')
+}
+
+{
+  const start = 4200000
+  let state = newGame(start, 'Ver.5')
+  state = applyAction(state, 'backup', start + 1000)
+  assert(state.message === '备份未开放', 'backup should be explicit placeholder')
+  assert(state.petKey === 'digitama', 'backup placeholder should not change pet')
 }
 
 if (failures.length) {
