@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2 - 2026-06-04
+
+- Recalibrated the watch layout for the 432 x 514 REDMI Watch 6 device canvas instead of the earlier 480 design-width scaling.
+- Enlarged and centered the LCD viewport on the page so the pet screen fills the real device more closely.
+- Increased the central stage and sprite sizes to match the larger LCD viewport.
+
 ## 0.4.1 - 2026-06-04
 
 - Updated the formal v5 home rail to the manual-aligned eight entries: Status, Food, Training, Battles, Clean Waste, Sleep, Heal, and Call.

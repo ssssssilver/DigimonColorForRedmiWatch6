@@ -562,34 +562,35 @@ export default {
 
 <style>
 .vpet-page {
-  width: 100%;
-  height: 100%;
+  width: 432px;
+  height: 514px;
   flex-direction: column;
   align-items: center;
-  padding-left: 14px;
-  padding-right: 14px;
-  padding-top: 16px;
-  padding-bottom: 8px;
+  justify-content: center;
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-top: 0px;
+  padding-bottom: 0px;
   background-color: #203d33;
 }
 
 .lcd {
-  width: 408px;
-  height: 408px;
+  width: 424px;
+  height: 424px;
   flex-direction: column;
   border-width: 4px;
   border-color: #2f5b4d;
   border-radius: 4px;
   background-color: #d7e6c7;
-  padding-left: 6px;
-  padding-right: 6px;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  margin-top: 4px;
+  padding-left: 0px;
+  padding-right: 0px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  margin-top: 0px;
 }
 
 .home-lcd {
-  height: 408px;
+  height: 424px;
 }
 
 .cold-lcd {
@@ -602,7 +603,7 @@ export default {
 
 .icon-rail {
   width: 100%;
-  height: 42px;
+  height: 44px;
   flex-direction: row;
   align-items: center;
   justify-content: space-around;
@@ -611,7 +612,7 @@ export default {
 
 .rail-icon {
   width: 24%;
-  height: 40px;
+  height: 42px;
   border-width: 0px;
   border-radius: 0px;
   background-color: #d7e6c7;
@@ -646,7 +647,7 @@ export default {
 
 .stage-slot {
   width: 100%;
-  height: 316px;
+  height: 336px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -654,7 +655,7 @@ export default {
 
 .bottom-slot {
   width: 100%;
-  height: 42px;
+  height: 44px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -662,7 +663,7 @@ export default {
 
 .scene {
   width: 100%;
-  height: 316px;
+  height: 336px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -691,7 +692,7 @@ export default {
 
 .battle-scene {
   width: 100%;
-  height: 316px;
+  height: 336px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -707,15 +708,15 @@ export default {
 
 .battle-preview-scene {
   width: 100%;
-  height: 316px;
+  height: 336px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
 .module-scene {
-  width: 276px;
-  height: 210px;
+  width: 304px;
+  height: 224px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -845,7 +846,7 @@ export default {
 
 .train-scene {
   width: 100%;
-  height: 316px;
+  height: 336px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -907,7 +908,7 @@ export default {
 
 .status-scene {
   width: 100%;
-  height: 316px;
+  height: 336px;
   flex-direction: column;
   justify-content: center;
   padding-left: 12px;
@@ -925,8 +926,8 @@ export default {
 }
 
 .pet-sprite {
-  width: 150px;
-  height: 150px;
+  width: 168px;
+  height: 168px;
   margin-top: 16px;
 }
 
@@ -947,8 +948,8 @@ export default {
 }
 
 .tap-zone {
-  width: 408px;
-  height: 24px;
+  width: 1px;
+  height: 1px;
   border-width: 0px;
   background-color: #203d33;
   color: #7fa48f;
