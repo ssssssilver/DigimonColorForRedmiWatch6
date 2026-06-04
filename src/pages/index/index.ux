@@ -8,100 +8,104 @@
         <input class="{{battleIconClass}}" type="button" value="对战" onclick="runAction('battlePreview')" />
       </div>
 
-      <div class="battle-scene" if="{{model.showBattle && !showStatus && !showTrain && !showBattlePreview}}">
-        <image class="battle-sprite" src="{{model.sprite}}"></image>
-        <div class="battle-center">
-          <text class="battle-vs">对战</text>
-          <text class="battle-result">{{model.battleResultText}}</text>
+      <div class="stage-slot">
+        <div class="battle-scene" if="{{model.showBattle && !showStatus && !showTrain && !showBattlePreview}}">
+          <image class="battle-sprite" src="{{model.sprite}}"></image>
+          <div class="battle-center">
+            <text class="battle-vs">对战</text>
+            <text class="battle-result">{{model.battleResultText}}</text>
+          </div>
+          <image class="battle-sprite" src="{{model.enemySprite}}"></image>
         </div>
-        <image class="battle-sprite" src="{{model.enemySprite}}"></image>
-      </div>
 
-      <div class="battle-preview-scene" if="{{showBattlePreview}}">
-        <image class="battle-sprite enemy-large" src="{{battlePreview.enemySprite}}"></image>
-        <text class="enemy-name">{{battlePreview.enemyName}}</text>
-        <text class="enemy-meta">{{battlePreview.enemyMeta}}</text>
-        <text class="enemy-message">{{battlePreview.message}}</text>
-      </div>
-
-      <div class="train-scene" if="{{showTrain}}" onclick="runAction('primaryTap')">
-        <text class="train-title">{{trainTitle}}</text>
-        <div class="train-track">
-          <div for="{{trainCells}}" class="{{$item.className}}"></div>
+        <div class="battle-preview-scene" if="{{showBattlePreview}}">
+          <image class="battle-sprite enemy-large" src="{{battlePreview.enemySprite}}"></image>
+          <text class="enemy-name">{{battlePreview.enemyName}}</text>
+          <text class="enemy-meta">{{battlePreview.enemyMeta}}</text>
+          <text class="enemy-message">{{battlePreview.message}}</text>
         </div>
-        <text class="train-readout">{{trainText}}</text>
+
+        <div class="train-scene" if="{{showTrain}}" onclick="runAction('primaryTap')">
+          <text class="train-title">{{trainTitle}}</text>
+          <div class="train-track">
+            <div for="{{trainCells}}" class="{{$item.className}}"></div>
+          </div>
+          <text class="train-readout">{{trainText}}</text>
+        </div>
+
+        <div class="scene" if="{{!showStatus && !model.showBattle && !showTrain && !showBattlePreview}}">
+          <text class="pet-note">{{petNoteText}}</text>
+          <text class="action-feedback" if="{{showActionFeedback}}">{{actionFeedbackText}}</text>
+          <text class="grave" if="{{model.showGrave}}">X_X</text>
+          <image class="pet-sprite" if="{{model.showSprite && idleFrame === 0}}" src="{{model.idleSprite1}}"></image>
+          <image class="pet-sprite" if="{{model.showSprite && idleFrame === 1}}" src="{{model.idleSprite2}}"></image>
+          <text class="poop">{{model.poopText}}</text>
+        </div>
+
+        <div class="status-scene" if="{{showStatus}}">
+          <text for="{{model.statusRows}}" class="status-row">{{$item}}</text>
+        </div>
       </div>
 
-      <div class="scene" if="{{!showStatus && !model.showBattle && !showTrain && !showBattlePreview}}">
-        <text class="pet-note">{{petNoteText}}</text>
-        <text class="action-feedback" if="{{showActionFeedback}}">{{actionFeedbackText}}</text>
-        <text class="grave" if="{{model.showGrave}}">X_X</text>
-        <image class="pet-sprite" if="{{model.showSprite && idleFrame === 0}}" src="{{model.idleSprite1}}"></image>
-        <image class="pet-sprite" if="{{model.showSprite && idleFrame === 1}}" src="{{model.idleSprite2}}"></image>
-        <text class="poop">{{model.poopText}}</text>
-      </div>
+      <div class="bottom-slot">
+        <div class="icon-rail bottom-rail" if="{{screenMode === 'main' && !model.showGrave}}">
+          <input class="{{wcIconClass}}" type="button" value="清洁" onclick="runAction('toilet')" />
+          <input class="{{medIconClass}}" type="button" value="治疗" onclick="runAction('med')" />
+          <input class="{{lightIconClass}}" type="button" value="灯光" onclick="runAction('light')" />
+          <input class="{{coldIconClass}}" type="button" value="冷冻" onclick="runAction('cold')" />
+          <input class="{{dataIconClass}}" type="button" value="资料" onclick="runAction('data')" />
+        </div>
 
-      <div class="status-scene" if="{{showStatus}}">
-        <text for="{{model.statusRows}}" class="status-row">{{$item}}</text>
-      </div>
+        <div class="icon-rail bottom-rail" if="{{screenMode === 'feed'}}">
+          <input class="rail-icon sub-icon" type="button" value="肉食" onclick="runAction('meat')" />
+          <input class="rail-icon sub-icon" type="button" value="补剂" onclick="runAction('vitamin')" />
+          <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
+        </div>
 
-      <div class="icon-rail bottom-rail" if="{{screenMode === 'main' && !model.showGrave}}">
-        <input class="{{wcIconClass}}" type="button" value="清洁" onclick="runAction('toilet')" />
-        <input class="{{medIconClass}}" type="button" value="治疗" onclick="runAction('med')" />
-        <input class="{{lightIconClass}}" type="button" value="灯光" onclick="runAction('light')" />
-        <input class="{{coldIconClass}}" type="button" value="冷冻" onclick="runAction('cold')" />
-        <input class="{{dataIconClass}}" type="button" value="资料" onclick="runAction('data')" />
-      </div>
+        <div class="icon-rail bottom-rail" if="{{screenMode === 'status'}}">
+          <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
+          <input class="rail-icon sub-icon" type="button" value="资料" onclick="runAction('data')" />
+          <input class="rail-icon sub-icon warn-icon" type="button" value="重置" onclick="runAction('resetAsk')" />
+        </div>
 
-      <div class="icon-rail bottom-rail" if="{{screenMode === 'feed'}}">
-        <input class="rail-icon sub-icon" type="button" value="肉食" onclick="runAction('meat')" />
-        <input class="rail-icon sub-icon" type="button" value="补剂" onclick="runAction('vitamin')" />
-        <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
-      </div>
+        <div class="icon-rail bottom-rail" if="{{screenMode === 'coldMenu'}}">
+          <input class="rail-icon sub-icon icon-active" type="button" value="恢复" onclick="runAction('cold')" />
+          <input class="rail-icon sub-icon" type="button" value="状态" onclick="runAction('status')" />
+          <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
+        </div>
 
-      <div class="icon-rail bottom-rail" if="{{screenMode === 'status'}}">
-        <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
-        <input class="rail-icon sub-icon" type="button" value="资料" onclick="runAction('data')" />
-        <input class="rail-icon sub-icon warn-icon" type="button" value="重置" onclick="runAction('resetAsk')" />
-      </div>
+        <div class="icon-rail bottom-rail" if="{{screenMode === 'sleepMenu'}}">
+          <input class="rail-icon sub-icon icon-active" type="button" value="唤醒" onclick="runAction('light')" />
+          <input class="rail-icon sub-icon" type="button" value="状态" onclick="runAction('status')" />
+          <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
+        </div>
 
-      <div class="icon-rail bottom-rail" if="{{screenMode === 'coldMenu'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="恢复" onclick="runAction('cold')" />
-        <input class="rail-icon sub-icon" type="button" value="状态" onclick="runAction('status')" />
-        <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
-      </div>
+        <div class="icon-rail bottom-rail" if="{{screenMode === 'resetConfirm'}}">
+          <input class="rail-icon sub-icon warn-icon" type="button" value="新蛋" onclick="runAction('reset')" />
+          <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
+        </div>
 
-      <div class="icon-rail bottom-rail" if="{{screenMode === 'sleepMenu'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="唤醒" onclick="runAction('light')" />
-        <input class="rail-icon sub-icon" type="button" value="状态" onclick="runAction('status')" />
-        <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
-      </div>
+        <div class="icon-rail bottom-rail" if="{{screenMode === 'train'}}">
+          <input class="rail-icon sub-icon icon-active" type="button" value="停止判定" onclick="runAction('trainStop')" />
+          <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
+        </div>
 
-      <div class="icon-rail bottom-rail" if="{{screenMode === 'resetConfirm'}}">
-        <input class="rail-icon sub-icon warn-icon" type="button" value="新蛋" onclick="runAction('reset')" />
-        <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
-      </div>
+        <div class="icon-rail bottom-rail" if="{{screenMode === 'trainResult'}}">
+          <input class="rail-icon sub-icon icon-active" type="button" value="确认" onclick="runAction('back')" />
+        </div>
 
-      <div class="icon-rail bottom-rail" if="{{screenMode === 'train'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="停止判定" onclick="runAction('trainStop')" />
-        <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
-      </div>
+        <div class="icon-rail bottom-rail" if="{{screenMode === 'battlePreview'}}">
+          <input class="rail-icon sub-icon icon-active" type="button" value="开始" onclick="runAction('battleStart')" />
+          <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
+        </div>
 
-      <div class="icon-rail bottom-rail" if="{{screenMode === 'trainResult'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="确认" onclick="runAction('back')" />
-      </div>
+        <div class="icon-rail bottom-rail" if="{{screenMode === 'battleResult'}}">
+          <input class="rail-icon sub-icon icon-active" type="button" value="确认" onclick="runAction('back')" />
+        </div>
 
-      <div class="icon-rail bottom-rail" if="{{screenMode === 'battlePreview'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="开始" onclick="runAction('battleStart')" />
-        <input class="rail-icon sub-icon" type="button" value="返回" onclick="runAction('back')" />
-      </div>
-
-      <div class="icon-rail bottom-rail" if="{{screenMode === 'battleResult'}}">
-        <input class="rail-icon sub-icon icon-active" type="button" value="确认" onclick="runAction('back')" />
-      </div>
-
-      <div class="icon-rail bottom-rail" if="{{model.showGrave && screenMode !== 'resetConfirm'}}">
-        <input class="rail-icon sub-icon warn-icon" type="button" value="新蛋" onclick="runAction('resetAsk')" />
+        <div class="icon-rail bottom-rail" if="{{model.showGrave && screenMode !== 'resetConfirm'}}">
+          <input class="rail-icon sub-icon warn-icon" type="button" value="新蛋" onclick="runAction('resetAsk')" />
+        </div>
       </div>
     </div>
 
@@ -587,6 +591,22 @@ export default {
   color: #9a2b16;
   border-width: 1px;
   border-color: #9a2b16;
+}
+
+.stage-slot {
+  width: 100%;
+  height: 316px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.bottom-slot {
+  width: 100%;
+  height: 42px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .scene {

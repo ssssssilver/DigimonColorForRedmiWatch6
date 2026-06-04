@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.7 - 2026-06-04
+
+- Fixed the watch home layout by adding stable stage and bottom-rail slots so top and bottom command rails no longer collapse together during rapid mode changes.
+- Kept the existing mode-specific bottom commands inside a fixed-height rail container to reduce Vela conditional-layout churn.
+
 ## 0.3.6 - 2026-06-03
 
 - Reworked the training screen into a visible timing-bar interaction with clear charging cells, success/failure colors, and direct result text.
