@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 - 2026-06-04
+
+- Started the formal v5 UI development line from the updated quick-app, 8-module, and battle UI documents.
+- Reworked the watch home screen into an 8-module LCD rail: Status/Data, Food, Train, Battle, WC, Med, Light, and Cold, with DATA removed as a ninth home entry.
+- Moved Food, Status, Train, Battle, Cold, Sleep, and reset actions into the central LCD stage so secondary controls no longer replace or crowd the bottom rail.
+- Replaced unsupported simulator glyphs in the icon rail with Vela-safe visible markers while keeping Chinese two-character labels.
+
 ## 0.3.7 - 2026-06-04
 
 - Fixed the watch home layout by adding stable stage and bottom-rail slots so top and bottom command rails no longer collapse together during rapid mode changes.
