@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.3 - 2026-06-04
+
+- Expanded the watch LCD to the full 432 x 514 device canvas so the app no longer appears as a smaller centered square on real hardware.
+- Enlarged the home rails, module controls, training bar, battle sprites, and central pet sprite for better real-device readability.
+- Increased the main pet sprite from 168px to 236px and gave the released space to the central stage.
+
 ## 0.4.2 - 2026-06-04
 
 - Recalibrated the watch layout for the 432 x 514 REDMI Watch 6 device canvas instead of the earlier 480 design-width scaling.
