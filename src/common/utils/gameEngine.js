@@ -7,7 +7,7 @@ const MAX_HEARTS = 4
 const MAX_ENERGY = 4
 const MAX_PROTEIN_OVERDOSE = 7
 const PET_VERSIONS = ['Ver.5']
-export const CURRENT_SCHEMA_VERSION = 3
+export const CURRENT_SCHEMA_VERSION = 4
 const SCHEMA_VERSION = CURRENT_SCHEMA_VERSION
 const MAX_OFFLINE_MS = 7 * 24 * 60 * 60 * 1000
 const LEGACY_MESSAGES = {
@@ -125,6 +125,10 @@ export function newGame(now = Date.now(), version = 'Ver.5') {
     callActive: false,
     callStartedAt: 0,
     lastCallPressedAt: 0,
+    recoveryPending: false,
+    recoveryReason: '',
+    recoveryStartedAt: 0,
+    lastRecoveredAt: 0,
     emptyStartedAt: 0,
     questArea: 0,
     questRound: 0,
@@ -157,12 +161,13 @@ export function hydrateState(raw, now = Date.now()) {
     state.lastHungerAt = now
     state.lastStrengthAt = now
     state.lastPoopAt = now
-    state.message = '时间异常'
+    markRecovery(state, '时间异常', now, '时间异常')
   }
   if (!state.cold && now - state.lastTickAt > MAX_OFFLINE_MS) {
     const cappedNow = state.lastTickAt + MAX_OFFLINE_MS
-    state.message = '时间已校正'
-    return tickState(state, cappedNow)
+    const capped = tickState(state, cappedNow)
+    markRecovery(capped, '离线过久', now, '时间已校正')
+    return capped
   }
   if (!state.nextEvolutionAt) scheduleEvolution(state, now)
   return tickState(state, now)
@@ -207,6 +212,10 @@ function newGameSkeleton(now) {
     callActive: false,
     callStartedAt: 0,
     lastCallPressedAt: 0,
+    recoveryPending: false,
+    recoveryReason: '',
+    recoveryStartedAt: 0,
+    lastRecoveredAt: 0,
     emptyStartedAt: 0,
     questArea: 0,
     questRound: 0,
@@ -336,6 +345,17 @@ function updateEvolution(state, now) {
 }
 
 export function applyAction(state, action, now = Date.now()) {
+  if (action === 'recover') {
+    state = Object.assign(newGameSkeleton(now), state || {})
+    state.schemaVersion = SCHEMA_VERSION
+    clearRecovery(state, now)
+    stampAction(state, action, now)
+    state.lastTickAt = now
+    state.lastHungerAt = now
+    state.lastStrengthAt = now
+    state.lastPoopAt = now
+    return withPet(state)
+  }
   state = tickState(state, now)
   if (action === 'reset') return newGame(now, state.version)
   if (action === 'version') {
@@ -378,6 +398,21 @@ export function applyAction(state, action, now = Date.now()) {
 function stampAction(state, action, now) {
   state.lastAction = action
   state.lastActionAt = now
+}
+
+function markRecovery(state, reason, now, message) {
+  state.recoveryPending = true
+  state.recoveryReason = reason
+  state.recoveryStartedAt = now
+  state.message = message
+}
+
+function clearRecovery(state, now) {
+  state.recoveryPending = false
+  state.recoveryReason = ''
+  state.recoveryStartedAt = 0
+  state.lastRecoveredAt = now
+  state.message = '已恢复'
 }
 
 function feedMeat(state) {
@@ -662,6 +697,9 @@ export function getDisplayModel(state, now = Date.now()) {
     callText: current.callActive ? '呼叫' : '',
     coldText: current.cold ? '冷冻' : '',
     sleepText: current.asleep ? 'ZZZ' : current.lightsOff ? '关灯' : '',
+    showRecovery: !!current.recoveryPending,
+    recoveryTitle: current.recoveryReason || '恢复',
+    recoveryMessage: recoveryMessage(current),
     questText: quest.enemy ? `Q${quest.areaNumber}-${quest.roundNumber}` : 'Q-',
     versionText: normalizeVersion(current.version),
     statusRows: statusRows(current, now)
@@ -682,6 +720,7 @@ function hearts(value) {
 
 function statusText(state) {
   const flags = []
+  if (state.recoveryPending) flags.push('恢复')
   if (state.sick) flags.push('生病')
   if (state.injured) flags.push('受伤')
   if (state.poop >= 3) flags.push('脏')
@@ -706,8 +745,16 @@ function statusRows(state, now) {
     `战斗 ${state.wins}/${state.battles} 能量 ${state.energy || 0}/${MAX_ENERGY}`,
     `Q${quest.areaNumber || '-'}-${quest.roundNumber || '-'} ${quest.enemy ? quest.enemy.name : '无'}`,
     `失误 ${state.careMistakes} 过量 ${state.proteinOverdose || 0} 受伤 ${state.injuries || 0}`,
+    `恢复 ${state.recoveryPending ? state.recoveryReason || '待确认' : '正常'}`,
     `进化 ${evoText}`
   ]
+}
+
+function recoveryMessage(state) {
+  if (!state.recoveryPending) return ''
+  if (state.recoveryReason === '离线过久') return '已按上限结算，请确认'
+  if (state.recoveryReason === '时间异常') return '时间已重新校正'
+  return '请确认恢复状态'
 }
 
 function markSick(state, now) {

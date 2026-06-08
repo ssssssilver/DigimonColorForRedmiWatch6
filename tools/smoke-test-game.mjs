@@ -19,8 +19,9 @@ hatch('Ver.5')
 
 {
   const state = newGame(1200000, 'Ver.5')
-  assert(state.schemaVersion === 3, 'new game should use schema v3')
+  assert(state.schemaVersion === 4, 'new game should use schema v4')
   assert(state.lightsOff === false, 'new game should start with lights on')
+  assert(state.recoveryPending === false, 'new game should not start in recovery')
 }
 
 {
@@ -46,9 +47,24 @@ hatch('Ver.5')
   raw.message = 'EVOLUTION!'
   delete raw.coldStartedAt
   const state = hydrateState(raw, start + 2000)
-  assert(state.schemaVersion === 3, 'old save should migrate to schema v3')
+  assert(state.schemaVersion === 4, 'old save should migrate to schema v4')
   assert(state.coldStartedAt === start + 1000, 'old cold save should recover coldStartedAt')
   assert(state.message === '进化', 'old save should localize legacy English messages')
+}
+
+{
+  const start = 1350000
+  const raw = newGame(start, 'Ver.5')
+  raw.lastTickAt = start
+  raw.lastHungerAt = start
+  raw.lastStrengthAt = start
+  raw.lastPoopAt = start
+  const state = hydrateState(raw, start + 8 * 24 * 60 * 60 * 1000)
+  assert(state.recoveryPending, 'long offline hydrate should open recovery confirmation')
+  assert(state.recoveryReason === '离线过久', 'long offline recovery should explain the capped recovery reason')
+  const recovered = applyAction(state, 'recover', start + 8 * 24 * 60 * 60 * 1000 + 1000)
+  assert(!recovered.recoveryPending, 'recover action should clear recovery confirmation')
+  assert(recovered.message === '已恢复', 'recover action should show recovery feedback')
 }
 
 {

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.4 - 2026-06-08
+
+- Added schema v4 recovery confirmation for abnormal clock changes and long offline catch-up caps.
+- Added a central Recovery panel so players can confirm capped recovery before continuing normal care.
+- Added short full-stage action feedback panels for feeding, cleaning, healing, lights, Cold Mode, Call, Backup, and recovery.
+- Expanded smoke coverage for schema v4 migration and recovery confirmation clearing.
+
 ## 0.4.3 - 2026-06-04
 
 - Expanded the watch LCD to the full 432 x 514 device canvas so the app no longer appears as a smaller centered square on real hardware.

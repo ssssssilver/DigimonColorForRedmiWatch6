@@ -15,6 +15,7 @@
             <div class="battle-center">
               <text class="battle-vs">战斗</text>
               <text class="battle-result">{{model.battleResultText}}</text>
+              <text class="battle-message">{{model.message}}</text>
             </div>
             <image class="battle-sprite" src="{{model.enemySprite}}"></image>
           </div>
@@ -46,6 +47,22 @@
             <input class="module-action action-primary" if="{{screenMode === 'trainResult'}}" type="button" value="确认" onclick="runAction('back')" />
             <input class="module-action" if="{{screenMode === 'train'}}" type="button" value="返回" onclick="runAction('back')" />
           </div>
+        </div>
+
+        <div class="recovery-scene" if="{{showRecovery}}">
+          <text class="module-icon">!</text>
+          <text class="module-title">{{model.recoveryTitle}}</text>
+          <text class="module-feedback">{{model.recoveryMessage}}</text>
+          <div class="module-actions">
+            <input class="module-action action-primary" type="button" value="确认" onclick="runAction('recover')" />
+            <input class="module-action" type="button" value="状态" onclick="runAction('status')" />
+          </div>
+        </div>
+
+        <div class="{{effectClass}}" if="{{showEffect}}">
+          <text class="effect-icon">{{effectIcon}}</text>
+          <text class="effect-title">{{effectTitle}}</text>
+          <text class="effect-message">{{effectMessage}}</text>
         </div>
 
         <div class="module-scene" if="{{showFeed}}">
@@ -92,7 +109,7 @@
           </div>
         </div>
 
-        <div class="scene" if="{{!showStatus && !showFeed && !showColdMenu && !showSleepMenu && !showResetConfirm && !model.showBattle && !showTrain && !showBattlePreview}}">
+        <div class="scene" if="{{!showStatus && !showFeed && !showColdMenu && !showSleepMenu && !showResetConfirm && !showRecovery && !showEffect && !model.showBattle && !showTrain && !showBattlePreview}}">
           <text class="pet-note">{{petNoteText}}</text>
           <text class="action-feedback" if="{{showActionFeedback}}">{{actionFeedbackText}}</text>
           <text class="grave" if="{{model.showGrave}}">X_X</text>
@@ -160,10 +177,14 @@ export default {
       enemySprite: '',
       enemyName: '',
       showBattle: false,
-      battleResultText: ''
+      battleResultText: '',
+      showRecovery: false,
+      recoveryTitle: '',
+      recoveryMessage: ''
     },
     timerId: 0,
     feedbackTimerId: 0,
+    effectTimerId: 0,
     lastSavedAt: 0,
     lastSavedPet: '',
     screenMode: 'main',
@@ -174,6 +195,8 @@ export default {
     showColdMenu: false,
     showSleepMenu: false,
     showResetConfirm: false,
+    showRecovery: false,
+    showEffect: false,
     showDeadAction: false,
     showCommands: false,
     idleFrame: 0,
@@ -190,6 +213,11 @@ export default {
     petNoteText: '',
     showActionFeedback: false,
     actionFeedbackText: '',
+    effectIcon: '',
+    effectTitle: '',
+    effectMessage: '',
+    effectClass: 'effect-scene',
+    effectReturnMode: 'main',
     statusIconClass: 'rail-icon',
     foodIconClass: 'rail-icon',
     trainIconClass: 'rail-icon',
@@ -250,6 +278,7 @@ export default {
     this.timerId = 0
     this.stopTrainTicker()
     this.clearFeedbackTimer()
+    this.clearEffectTimer()
   },
   persistNow() {
     if (!this.state.petKey) return
@@ -277,6 +306,14 @@ export default {
       }
       if (this.screenMode === 'trainResult' || this.screenMode === 'battleResult') {
         this.runAction('back')
+        return
+      }
+      if (this.screenMode === 'recovery') {
+        this.runAction('recover')
+        return
+      }
+      if (this.screenMode === 'effect') {
+        this.closeEffect()
         return
       }
       if (this.screenMode === 'battlePreview') {
@@ -363,6 +400,12 @@ export default {
       this.syncMode()
       return
     }
+    if (action === 'recover') {
+      this.state = applyAction(this.state, action)
+      this.afterEngineAction(false)
+      this.showActionEffect(action, 900, 'main')
+      return
+    }
     if (action === 'resetAsk') {
       this.screenMode = 'resetConfirm'
       this.menuOpenedAt = Date.now()
@@ -372,16 +415,14 @@ export default {
     if (action === 'back') {
       this.screenMode = 'main'
       this.stopTrainTicker()
+      this.clearEffectTimer()
       this.syncMode()
       return
     }
     this.state = applyAction(this.state, action)
     this.afterEngineAction(action === 'battle' || action === 'cold' || action === 'med')
-    this.showStageFeedback(this.feedbackTextForAction(action))
     if (action === 'meat' || action === 'vitamin') {
-      this.screenMode = 'feed'
-      this.menuOpenedAt = Date.now()
-      this.syncMode()
+      this.showActionEffect(action, 950, 'feed')
       return
     }
     if (action === 'data') {
@@ -391,24 +432,24 @@ export default {
       return
     }
     if (action === 'backup') {
-      this.screenMode = 'sleepMenu'
-      this.menuOpenedAt = Date.now()
-      this.syncMode()
+      this.showActionEffect(action, 950, 'sleepMenu')
       return
     }
     if (action === 'call') {
-      this.screenMode = 'main'
-      this.syncMode()
+      this.showActionEffect(action, 850, 'main')
       return
     }
     if (action === 'cold' && this.state.cold) {
-      this.screenMode = 'coldMenu'
+      this.showActionEffect(action, 950, 'coldMenu')
     } else if (action === 'light' && this.state.asleep) {
-      this.screenMode = 'sleepMenu'
+      this.showActionEffect(action, 950, 'sleepMenu')
+    } else if (action === 'toilet' || action === 'med' || action === 'light' || action === 'cold') {
+      this.showActionEffect(action, 950, 'main')
     } else {
       this.screenMode = 'main'
+      this.showStageFeedback(this.feedbackTextForAction(action))
+      this.syncMode()
     }
-    this.syncMode()
   },
   afterEngineAction(shouldBuzz) {
     this.model = getDisplayModel(this.state)
@@ -446,6 +487,45 @@ export default {
     clearTimeout(this.feedbackTimerId)
     this.feedbackTimerId = 0
   },
+  showActionEffect(action, duration, returnMode) {
+    const effect = this.effectForAction(action)
+    this.effectIcon = effect.icon
+    this.effectTitle = effect.title
+    this.effectMessage = effect.message
+    this.effectClass = `effect-scene ${effect.className}`
+    this.effectReturnMode = returnMode || 'main'
+    this.screenMode = 'effect'
+    this.menuOpenedAt = Date.now()
+    this.clearEffectTimer()
+    this.effectTimerId = setTimeout(() => {
+      this.effectTimerId = 0
+      this.screenMode = this.effectReturnMode || 'main'
+      this.syncMode()
+    }, duration || 1000)
+    this.syncMode()
+  },
+  effectForAction(action) {
+    if (action === 'meat') return { icon: '●', title: '投喂', message: this.feedbackTextForAction(action), className: 'effect-feed' }
+    if (action === 'vitamin') return { icon: '+', title: '营养', message: this.feedbackTextForAction(action), className: 'effect-feed' }
+    if (action === 'toilet') return { icon: 'o', title: '清理', message: this.feedbackTextForAction(action), className: 'effect-clean' }
+    if (action === 'med') return { icon: '+', title: '治疗', message: this.feedbackTextForAction(action), className: 'effect-heal' }
+    if (action === 'light') return { icon: 'Z', title: '灯光', message: this.feedbackTextForAction(action), className: 'effect-sleep' }
+    if (action === 'cold') return { icon: '*', title: this.state.cold ? '冷冻' : '恢复', message: this.feedbackTextForAction(action), className: 'effect-cold' }
+    if (action === 'backup') return { icon: 'B', title: '备份', message: this.feedbackTextForAction(action), className: 'effect-warn' }
+    if (action === 'call') return { icon: '!', title: '呼唤', message: this.feedbackTextForAction(action), className: 'effect-call' }
+    if (action === 'recover') return { icon: '!', title: '恢复', message: this.state.message || '已恢复', className: 'effect-heal' }
+    return { icon: '!', title: '反馈', message: this.feedbackTextForAction(action), className: '' }
+  },
+  closeEffect() {
+    this.clearEffectTimer()
+    this.screenMode = this.effectReturnMode || 'main'
+    this.syncMode()
+  },
+  clearEffectTimer() {
+    if (!this.effectTimerId) return
+    clearTimeout(this.effectTimerId)
+    this.effectTimerId = 0
+  },
   buzz() {
     if (!vibrator || !vibrator.vibrate) return
     vibrator.vibrate({
@@ -471,6 +551,12 @@ export default {
     this.syncMode()
   },
   syncMode() {
+    if (this.state.recoveryPending && this.screenMode === 'main') {
+      this.screenMode = 'recovery'
+    }
+    if (!this.state.recoveryPending && this.screenMode === 'recovery') {
+      this.screenMode = 'main'
+    }
     if (this.state.cold && this.screenMode === 'main') {
       this.screenMode = 'coldMenu'
     }
@@ -484,6 +570,8 @@ export default {
     this.showColdMenu = this.screenMode === 'coldMenu'
     this.showSleepMenu = this.screenMode === 'sleepMenu'
     this.showResetConfirm = this.screenMode === 'resetConfirm'
+    this.showRecovery = this.screenMode === 'recovery'
+    this.showEffect = this.screenMode === 'effect'
     this.showDeadAction = this.model.showGrave && this.screenMode !== 'resetConfirm'
     this.showCommands = false
     this.lcdClass = 'lcd home-lcd'
@@ -729,6 +817,90 @@ export default {
   padding-bottom: 8px;
 }
 
+.recovery-scene {
+  width: 360px;
+  height: 260px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-width: 3px;
+  border-color: #6f351f;
+  background-color: #dce9ca;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.effect-scene {
+  width: 320px;
+  height: 250px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-width: 2px;
+  border-color: #203c38;
+  background-color: #dce9ca;
+}
+
+.effect-icon {
+  width: 100%;
+  height: 70px;
+  color: #101716;
+  font-size: 54px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.effect-title {
+  width: 100%;
+  height: 44px;
+  color: #101716;
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.effect-message {
+  width: 100%;
+  height: 42px;
+  color: #2b443c;
+  font-size: 20px;
+  text-align: center;
+}
+
+.effect-feed {
+  border-color: #667b68;
+}
+
+.effect-clean {
+  border-color: #4f6e7b;
+  background-color: #d9e9df;
+}
+
+.effect-heal {
+  border-color: #3f6a4e;
+  background-color: #d9ead1;
+}
+
+.effect-sleep {
+  border-color: #536669;
+  background-color: #cddedb;
+}
+
+.effect-cold {
+  border-color: #47707a;
+  background-color: #d5e8eb;
+}
+
+.effect-call {
+  border-color: #8d7b32;
+}
+
+.effect-warn {
+  border-color: #9a2b16;
+}
+
 .module-icon {
   width: 100%;
   height: 36px;
@@ -841,6 +1013,14 @@ export default {
 .battle-result {
   color: #101716;
   font-size: 16px;
+  margin-top: 4px;
+}
+
+.battle-message {
+  width: 96px;
+  color: #31483e;
+  font-size: 12px;
+  text-align: center;
   margin-top: 4px;
 }
 
