@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.5 - 2026-06-08
+
+- Added a short three-step battle sequence before the result screen: battle entry, projectile jump, and hit/dodge feedback.
+- Kept battle labels Chinese-facing while preserving the original-style short occupied-stage rhythm.
+- Refined Clean Waste and Heal feedback so successful cleanup/recovery uses stronger central effect panels than no-op actions.
+
 ## 0.4.4 - 2026-06-08
 
 - Added schema v4 recovery confirmation for abnormal clock changes and long offline catch-up caps.

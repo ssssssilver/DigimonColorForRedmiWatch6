@@ -9,7 +9,20 @@
       </div>
 
       <div class="stage-slot">
-        <div class="battle-scene" if="{{model.showBattle && !showStatus && !showTrain && !showBattlePreview}}">
+        <div class="battle-round-scene" if="{{showBattleRound}}">
+          <div class="battle-round-row">
+            <image class="battle-sprite battle-player" src="{{model.sprite}}"></image>
+            <div class="battle-lane">
+              <text class="battle-round-title">{{battlePhaseText}}</text>
+              <text class="{{battleProjectileClass}}">●</text>
+              <text class="{{battleHitClass}}">{{battleHitText}}</text>
+            </div>
+            <image class="battle-sprite battle-enemy" src="{{model.enemySprite}}"></image>
+          </div>
+          <text class="battle-round-message">{{battleRoundMessage}}</text>
+        </div>
+
+        <div class="battle-scene" if="{{showBattleResult}}">
           <div class="battle-row">
             <image class="battle-sprite" src="{{model.sprite}}"></image>
             <div class="battle-center">
@@ -109,7 +122,7 @@
           </div>
         </div>
 
-        <div class="scene" if="{{!showStatus && !showFeed && !showColdMenu && !showSleepMenu && !showResetConfirm && !showRecovery && !showEffect && !model.showBattle && !showTrain && !showBattlePreview}}">
+        <div class="scene" if="{{!showStatus && !showFeed && !showColdMenu && !showSleepMenu && !showResetConfirm && !showRecovery && !showEffect && !showBattleRound && !showBattleResult && !showTrain && !showBattlePreview}}">
           <text class="pet-note">{{petNoteText}}</text>
           <text class="action-feedback" if="{{showActionFeedback}}">{{actionFeedbackText}}</text>
           <text class="grave" if="{{model.showGrave}}">X_X</text>
@@ -185,6 +198,8 @@ export default {
     timerId: 0,
     feedbackTimerId: 0,
     effectTimerId: 0,
+    battleTimerId: 0,
+    battleStepTimerId: 0,
     lastSavedAt: 0,
     lastSavedPet: '',
     screenMode: 'main',
@@ -192,6 +207,8 @@ export default {
     showFeed: false,
     showTrain: false,
     showBattlePreview: false,
+    showBattleRound: false,
+    showBattleResult: false,
     showColdMenu: false,
     showSleepMenu: false,
     showResetConfirm: false,
@@ -218,6 +235,11 @@ export default {
     effectMessage: '',
     effectClass: 'effect-scene',
     effectReturnMode: 'main',
+    battlePhaseText: '',
+    battleHitText: '',
+    battleRoundMessage: '',
+    battleProjectileClass: 'battle-projectile projectile-hidden',
+    battleHitClass: 'battle-hit battle-hit-hidden',
     statusIconClass: 'rail-icon',
     foodIconClass: 'rail-icon',
     trainIconClass: 'rail-icon',
@@ -279,6 +301,7 @@ export default {
     this.stopTrainTicker()
     this.clearFeedbackTimer()
     this.clearEffectTimer()
+    this.clearBattleTimers()
   },
   persistNow() {
     if (!this.state.petKey) return
@@ -306,6 +329,10 @@ export default {
       }
       if (this.screenMode === 'trainResult' || this.screenMode === 'battleResult') {
         this.runAction('back')
+        return
+      }
+      if (this.screenMode === 'battleRound') {
+        this.finishBattleSequence()
         return
       }
       if (this.screenMode === 'recovery') {
@@ -395,9 +422,7 @@ export default {
       }
       this.state = applyAction(this.state, 'battle')
       this.afterEngineAction(true)
-      this.screenMode = 'battleResult'
-      this.menuOpenedAt = Date.now()
-      this.syncMode()
+      this.startBattleSequence()
       return
     }
     if (action === 'recover') {
@@ -416,6 +441,7 @@ export default {
       this.screenMode = 'main'
       this.stopTrainTicker()
       this.clearEffectTimer()
+      this.clearBattleTimers()
       this.syncMode()
       return
     }
@@ -507,8 +533,14 @@ export default {
   effectForAction(action) {
     if (action === 'meat') return { icon: '●', title: '投喂', message: this.feedbackTextForAction(action), className: 'effect-feed' }
     if (action === 'vitamin') return { icon: '+', title: '营养', message: this.feedbackTextForAction(action), className: 'effect-feed' }
-    if (action === 'toilet') return { icon: 'o', title: '清理', message: this.feedbackTextForAction(action), className: 'effect-clean' }
-    if (action === 'med') return { icon: '+', title: '治疗', message: this.feedbackTextForAction(action), className: 'effect-heal' }
+    if (action === 'toilet') {
+      const cleaned = this.state.message === '清理完成'
+      return { icon: cleaned ? '○' : 'o', title: cleaned ? '清除' : '清理', message: this.feedbackTextForAction(action), className: cleaned ? 'effect-clean effect-clear-done' : 'effect-clean' }
+    }
+    if (action === 'med') {
+      const healed = this.state.message === '恢复了'
+      return { icon: '+', title: healed ? '恢复' : '治疗', message: this.feedbackTextForAction(action), className: healed ? 'effect-heal effect-heal-done' : 'effect-heal' }
+    }
     if (action === 'light') return { icon: 'Z', title: '灯光', message: this.feedbackTextForAction(action), className: 'effect-sleep' }
     if (action === 'cold') return { icon: '*', title: this.state.cold ? '冷冻' : '恢复', message: this.feedbackTextForAction(action), className: 'effect-cold' }
     if (action === 'backup') return { icon: 'B', title: '备份', message: this.feedbackTextForAction(action), className: 'effect-warn' }
@@ -525,6 +557,50 @@ export default {
     if (!this.effectTimerId) return
     clearTimeout(this.effectTimerId)
     this.effectTimerId = 0
+  },
+  startBattleSequence() {
+    this.clearBattleTimers()
+    this.screenMode = 'battleRound'
+    this.menuOpenedAt = Date.now()
+    this.battlePhaseText = '战斗'
+    this.battleHitText = ''
+    this.battleRoundMessage = this.state.lastEnemyName || '战斗开始'
+    this.battleProjectileClass = 'battle-projectile projectile-hidden'
+    this.battleHitClass = 'battle-hit battle-hit-hidden'
+    this.syncMode()
+    this.battleStepTimerId = setTimeout(() => {
+      this.battlePhaseText = '攻击'
+      this.battleRoundMessage = '发射'
+      this.battleProjectileClass = 'battle-projectile projectile-fire'
+      this.battleHitClass = 'battle-hit battle-hit-hidden'
+    }, 450)
+    this.battleTimerId = setTimeout(() => {
+      const won = this.state.lastBattleWon
+      this.battlePhaseText = won ? '命中' : '闪避'
+      this.battleHitText = won ? '命中' : '闪避'
+      this.battleRoundMessage = won ? '命中目标' : '没有命中'
+      this.battleProjectileClass = 'battle-projectile projectile-impact'
+      this.battleHitClass = won ? 'battle-hit battle-hit-on' : 'battle-hit battle-miss-on'
+      this.battleStepTimerId = setTimeout(() => {
+        this.finishBattleSequence()
+      }, 700)
+    }, 950)
+  },
+  finishBattleSequence() {
+    this.clearBattleTimers()
+    this.screenMode = 'battleResult'
+    this.menuOpenedAt = Date.now()
+    this.syncMode()
+  },
+  clearBattleTimers() {
+    if (this.battleTimerId) {
+      clearTimeout(this.battleTimerId)
+      this.battleTimerId = 0
+    }
+    if (this.battleStepTimerId) {
+      clearTimeout(this.battleStepTimerId)
+      this.battleStepTimerId = 0
+    }
   },
   buzz() {
     if (!vibrator || !vibrator.vibrate) return
@@ -567,6 +643,8 @@ export default {
     this.showFeed = this.screenMode === 'feed'
     this.showTrain = this.screenMode === 'train' || this.screenMode === 'trainResult'
     this.showBattlePreview = this.screenMode === 'battlePreview'
+    this.showBattleRound = this.screenMode === 'battleRound'
+    this.showBattleResult = this.screenMode === 'battleResult' && this.model.showBattle
     this.showColdMenu = this.screenMode === 'coldMenu'
     this.showSleepMenu = this.screenMode === 'sleepMenu'
     this.showResetConfirm = this.screenMode === 'resetConfirm'
@@ -591,7 +669,7 @@ export default {
     this.statusIconClass = this.screenMode === 'status' ? active : base
     this.foodIconClass = this.screenMode === 'feed' ? active : (this.state.hunger < 4 || this.state.strength < 4 ? hot : base)
     this.trainIconClass = this.screenMode === 'train' || this.screenMode === 'trainResult' ? active : base
-    this.battleIconClass = this.screenMode === 'battlePreview' || this.screenMode === 'battleResult' || this.model.showBattle ? active : base
+    this.battleIconClass = this.screenMode === 'battlePreview' || this.screenMode === 'battleRound' || this.screenMode === 'battleResult' || this.model.showBattle ? active : base
     this.wcIconClass = this.state.poop > 0 ? hot : base
     this.medIconClass = this.state.sick || this.state.injured ? hot : base
     this.sleepIconClass = this.screenMode === 'sleepMenu' || this.state.asleep || this.state.cold ? active : base
@@ -786,6 +864,93 @@ export default {
   justify-content: center;
 }
 
+.battle-round-scene {
+  width: 100%;
+  height: 410px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.battle-round-row {
+  width: 100%;
+  height: 260px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.battle-lane {
+  width: 112px;
+  height: 170px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.battle-round-title {
+  width: 112px;
+  height: 32px;
+  color: #101716;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.battle-projectile {
+  width: 112px;
+  height: 52px;
+  color: #101716;
+  font-size: 38px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.projectile-hidden {
+  color: #d7e6c7;
+}
+
+.projectile-fire {
+  color: #101716;
+  margin-left: -42px;
+}
+
+.projectile-impact {
+  color: #101716;
+  margin-left: 42px;
+}
+
+.battle-hit {
+  width: 112px;
+  height: 44px;
+  font-size: 26px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.battle-hit-hidden {
+  color: #d7e6c7;
+}
+
+.battle-hit-on {
+  color: #101716;
+  background-color: #d7a93b;
+}
+
+.battle-miss-on {
+  color: #31483e;
+  border-width: 1px;
+  border-color: #31483e;
+}
+
+.battle-round-message {
+  width: 280px;
+  height: 34px;
+  color: #31483e;
+  font-size: 18px;
+  text-align: center;
+}
+
 .battle-row {
   width: 100%;
   height: 250px;
@@ -878,9 +1043,19 @@ export default {
   background-color: #d9e9df;
 }
 
+.effect-clear-done {
+  border-width: 4px;
+  background-color: #e4efd8;
+}
+
 .effect-heal {
   border-color: #3f6a4e;
   background-color: #d9ead1;
+}
+
+.effect-heal-done {
+  border-width: 4px;
+  background-color: #e5efd2;
 }
 
 .effect-sleep {
@@ -963,6 +1138,14 @@ export default {
 .battle-sprite {
   width: 154px;
   height: 154px;
+}
+
+.battle-player {
+  margin-right: 0px;
+}
+
+.battle-enemy {
+  margin-left: 0px;
 }
 
 .enemy-large {
