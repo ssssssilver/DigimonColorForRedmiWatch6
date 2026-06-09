@@ -14,7 +14,7 @@
 
 ## 当前可交付版本
 
-当前第一版候选为 `0.4.7`。它已经包含 Ver.5 固定版本、孵化/成长、喂食、训练、清理、治疗、灯光、Cold Mode、状态查看、本地存档、Humulos 双帧待机动画、本地 Quest 战斗、真机 432 x 514 全屏布局、短占屏动作反馈、战斗短回合演出、离线恢复确认和第一版可用性自测脚本。
+当前第一版候选为 `0.4.8`。它已经包含 Ver.5 固定版本、孵化/成长、喂食、训练、清理、治疗、灯光、Cold Mode、状态查看、本地存档、Humulos 双帧待机动画、本地 Quest 战斗、真机 432 x 514 全屏布局、短占屏动作反馈、战斗短回合演出、离线恢复确认、第一版可用性自测脚本和一键 release QA 证据报告。
 
 训练操作：
 
@@ -30,6 +30,7 @@ npm run test:game
 npm run lint:data
 npm run qa:first-release
 npm run build
+npm run qa:release
 npm run debug:vela:square
 ```
 

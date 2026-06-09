@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.8 - 2026-06-09
+
+- Added `npm run qa:release` to run the full first-release verification flow in one command: game smoke, data validation, RPK build, and first-release QA.
+- The release QA flow now writes a local `logs/release-qa-<version>.md` evidence report with gate results, RPK path/size, commit, tags, and remaining manual device checks.
+- Updated README verification commands to include the new release QA flow.
+
 ## 0.4.7 - 2026-06-09
 
 - Strengthened `npm run qa:first-release` with release-version consistency checks, touch-target sizing checks, runtime no-network assertions, no version-switch UI assertion, timer cleanup assertions, and built-RPK presence validation.

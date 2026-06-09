@@ -1,6 +1,6 @@
 {
   "name": "multivpet-dmc-watch",
-  "version": "0.4.7",
+  "version": "0.4.8",
   "description": "Digital Monster Color style virtual pet game for Xiaomi Vela watches.",
   "engines": {
     "node": ">=18"
@@ -16,7 +16,8 @@
     "start": "aiot start --watch",
     "lint:data": "node tools/validate-data.mjs",
     "test:game": "node --no-warnings tools/smoke-test-game.mjs",
-    "qa:first-release": "node --no-warnings tools/qa-first-release.mjs"
+    "qa:first-release": "node --no-warnings tools/qa-first-release.mjs",
+    "qa:release": "node --no-warnings tools/qa-release.mjs"
   },
   "devDependencies": {
     "@aiot-toolkit/jsc": "^1.0.3",
