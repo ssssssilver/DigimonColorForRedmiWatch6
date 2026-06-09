@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.7 - 2026-06-09
+
+- Strengthened `npm run qa:first-release` with release-version consistency checks, touch-target sizing checks, runtime no-network assertions, no version-switch UI assertion, timer cleanup assertions, and built-RPK presence validation.
+- Expanded the automated P4 readiness coverage so first-release QA now guards more device contract requirements before handoff.
+
 ## 0.4.6 - 2026-06-09
 
 - Added `npm run qa:first-release` as a first-version readiness gate covering watch layout, the eight home entries, battle sequence UI hooks, cleanup/heal feedback, recovery confirmation, key care actions, Quest battle, and a 30-minute simulated run.

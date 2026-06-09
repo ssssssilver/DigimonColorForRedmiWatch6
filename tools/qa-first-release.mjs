@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readdir, readFile, stat } from 'node:fs/promises'
 import { applyAction, getBattlePreview, getDisplayModel, getTrainingPreview, hydrateState, newGame } from '../src/common/utils/gameEngine.js'
 
 const failures = []
@@ -11,12 +11,43 @@ function assertIncludes(source, expected, message) {
   assert(source.includes(expected), message)
 }
 
+function cssRule(source, selector) {
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const match = source.match(new RegExp(`${escaped}\\s*\\{([\\s\\S]*?)\\}`))
+  return match ? match[1] : ''
+}
+
+function pxValue(rule, property) {
+  const match = rule.match(new RegExp(`${property}:\\s*(\\d+)px`))
+  return match ? Number(match[1]) : 0
+}
+
+async function listFiles(dirUrl) {
+  const entries = await readdir(dirUrl, { withFileTypes: true })
+  const files = []
+  for (const entry of entries) {
+    const child = new URL(`${entry.name}${entry.isDirectory() ? '/' : ''}`, dirUrl)
+    if (entry.isDirectory()) {
+      files.push(...await listFiles(child))
+    } else {
+      files.push(child)
+    }
+  }
+  return files
+}
+
 const indexUx = await readFile(new URL('../src/pages/index/index.ux', import.meta.url), 'utf8')
 const manifest = JSON.parse(await readFile(new URL('../src/manifest.json', import.meta.url), 'utf8'))
 const pkg = JSON.parse(await readFile(new URL('../package.json', import.meta.url), 'utf8'))
+const packageLock = JSON.parse(await readFile(new URL('../package-lock.json', import.meta.url), 'utf8'))
+const version = (await readFile(new URL('../VERSION', import.meta.url), 'utf8')).trim()
 
 assert(manifest.config.designWidth === 432, 'manifest should use 432 design width for REDMI Watch 6')
 assert(manifest.versionName === pkg.version, 'manifest versionName should match package version')
+assert(packageLock.version === pkg.version, 'package-lock top-level version should match package version')
+assert(packageLock.packages[''].version === pkg.version, 'package-lock root package version should match package version')
+assert(version === pkg.version, 'VERSION should match package version')
+assert(!manifest.features.some((feature) => feature.name === 'system.network'), 'first release should not request network feature')
 assertIncludes(indexUx, 'width: 432px;', 'watch page should be full 432px wide')
 assertIncludes(indexUx, 'height: 514px;', 'watch page should target 514px height')
 assertIncludes(indexUx, '口状态', 'home rail should include Status entry')
@@ -32,6 +63,26 @@ assertIncludes(indexUx, 'projectile-fire', 'battle projectile jump state should 
 assertIncludes(indexUx, 'effect-clear-done', 'clean success effect should exist')
 assertIncludes(indexUx, 'effect-heal-done', 'heal success effect should exist')
 assertIncludes(indexUx, 'recovery-scene', 'recovery confirmation scene should exist')
+assert(!indexUx.includes("runAction('version')"), 'player UI should not expose version switching')
+
+const railRule = cssRule(indexUx, '.rail-icon')
+const moduleActionRule = cssRule(indexUx, '.module-action')
+const stageRule = cssRule(indexUx, '.stage-slot')
+const bottomRule = cssRule(indexUx, '.bottom-slot')
+assert(pxValue(railRule, 'height') >= 44, 'home rail touch targets should be at least 44px high')
+assert(pxValue(moduleActionRule, 'height') >= 44, 'module action touch targets should be at least 44px high')
+assert(pxValue(stageRule, 'height') + pxValue(bottomRule, 'height') + pxValue(cssRule(indexUx, '.icon-rail'), 'height') <= 514, 'fixed vertical slots should fit the 514px screen')
+assertIncludes(indexUx, 'this.stopTrainTicker()', 'stopTicker should stop training timer')
+assertIncludes(indexUx, 'this.clearFeedbackTimer()', 'stopTicker should clear feedback timer')
+assertIncludes(indexUx, 'this.clearEffectTimer()', 'stopTicker should clear effect timer')
+assertIncludes(indexUx, 'this.clearBattleTimers()', 'stopTicker should clear battle timers')
+
+const runtimeFiles = (await listFiles(new URL('../src/', import.meta.url))).filter((file) => /\.(js|ux|json)$/.test(file.pathname))
+for (const file of runtimeFiles) {
+  const source = await readFile(file, 'utf8')
+  assert(!source.includes('fetch('), `${file.pathname} should not perform network fetch in runtime source`)
+  assert(!source.includes('@system.request'), `${file.pathname} should not import request API in runtime source`)
+}
 
 const start = 1000000
 let state = newGame(start, 'Ver.5')
@@ -98,6 +149,14 @@ for (let minute = 1; minute <= 30; minute++) {
   longRun = getDisplayModel(longRun, start + minute * 60 * 1000).state
   assert(longRun.schemaVersion === 4, `schema should remain v4 at minute ${minute}`)
   assert(!longRun.dead, `pet should survive first 30 simulated minutes at minute ${minute}`)
+}
+
+const expectedRpk = new URL(`../dist/com.learning.multivpet.dmcwatch.debug.${pkg.version}.rpk`, import.meta.url)
+try {
+  const info = await stat(expectedRpk)
+  assert(info.size > 100000, 'built RPK should exist and be non-trivial in size')
+} catch (error) {
+  failures.push(`built RPK for ${pkg.version} is missing; run npm run build before final release QA`)
 }
 
 if (failures.length) {

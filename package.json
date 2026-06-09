@@ -1,6 +1,6 @@
 {
   "name": "multivpet-dmc-watch",
-  "version": "0.4.6",
+  "version": "0.4.7",
   "description": "Digital Monster Color style virtual pet game for Xiaomi Vela watches.",
   "engines": {
     "node": ">=18"

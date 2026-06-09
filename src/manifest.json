@@ -1,8 +1,8 @@
 {
   "package": "com.learning.multivpet.dmcwatch",
   "name": "DMC宠物",
-  "versionName": "0.4.6",
-  "versionCode": 23,
+  "versionName": "0.4.7",
+  "versionCode": 24,
   "minPlatformVersion": 1200,
   "icon": "/common/logo.png",
   "simulationVersion": "default",
