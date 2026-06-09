@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.6 - 2026-06-09
+
+- Added `npm run qa:first-release` as a first-version readiness gate covering watch layout, the eight home entries, battle sequence UI hooks, cleanup/heal feedback, recovery confirmation, key care actions, Quest battle, and a 30-minute simulated run.
+- Updated the README current candidate and local verification commands to include the first-release QA gate.
+
 ## 0.4.5 - 2026-06-08
 
 - Added a short three-step battle sequence before the result screen: battle entry, projectile jump, and hit/dodge feedback.
